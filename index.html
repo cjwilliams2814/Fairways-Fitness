@@ -501,11 +501,19 @@ const d=new Date(ORIGIN); d.setDate(d.getDate()+offset*7);
 return ‘wk_’+d.toISOString().slice(0,10);
 }
 
+// ── SUPABASE TIMEOUT WRAPPER ──
+async function sbQuery(fn){
+try{
+const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error(‘timeout’)),8000));
+return await Promise.race([fn(),timeout]);
+}catch(e){ console.warn(‘Supabase error:’,e); return {data:null,error:e}; }
+}
+
 // ── WEEK META (type + customSessions) ──
 async function loadWeekMeta(offset){
 const key=getWK(offset);
 if(cache.weekMeta[key]) return cache.weekMeta[key];
-const {data}=await sb.from(‘week_meta’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key).maybeSingle();
+const {data}=await sbQuery(()=>sb.from(‘week_meta’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key).maybeSingle());
 const meta=data||{week_key:key,week_type:‘regular’,custom_sessions:{}};
 cache.weekMeta[key]=meta;
 return meta;
@@ -545,7 +553,7 @@ cache.weekMeta[key]={…existing,…row,custom_sessions:cs};
 async function loadWeekSessions(offset){
 const key=getWK(offset);
 if(cache.weekSessions[key]) return cache.weekSessions[key];
-const {data}=await sb.from(‘week_sessions’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key);
+const {data}=await sbQuery(()=>sb.from(‘week_sessions’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key));
 const map={};
 (data||[]).forEach(r=>{ map[r.session_id]={done:r.done,skipped:r.skipped,rating:r.rating,notes:r.notes,muscles:r.muscles||[],expanded:r.expanded}; });
 cache.weekSessions[key]=map;
@@ -564,7 +572,7 @@ showSync(!error);
 // ── ROUNDS ──
 async function loadRounds(){
 if(cache.rounds!==null) return cache.rounds;
-const {data}=await sb.from(‘rounds’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:false});
+const {data}=await sbQuery(()=>sb.from(‘rounds’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:false}));
 cache.rounds=(data||[]).map(r=>({
 course:r.course, date:r.date, holes:r.holes,
 totalScore:r.total_score, totalPar:r.total_par,
@@ -591,7 +599,7 @@ cache.rounds=null;
 // ── HCP LOG ──
 async function loadHcpLog(){
 if(cache.hcpLog!==null) return cache.hcpLog;
-const {data}=await sb.from(‘hcp_log’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:true});
+const {data}=await sbQuery(()=>sb.from(‘hcp_log’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:true}));
 cache.hcpLog=(data||[]).map(r=>({date:r.date,val:parseFloat(r.val),_id:r.id}));
 return cache.hcpLog;
 }
@@ -1143,8 +1151,18 @@ c.appendChild(note);
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-renderWeekView();
+async function init(){
+showLoading(‘Connecting…’);
+try{
+await renderWeekView();
+}catch(e){
+console.error(‘Init error:’,e);
+document.getElementById(‘week-body’).innerHTML=’<div class="no-data" style="padding-top:30px;color:var(--red)">Connection error. Check your internet and reload.</div>’;
+}
+hideLoading();
 renderRoundsView();
+}
+init();
 </script>
 
 </body>
