@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CJ Training Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0e0f0d;--surface:#161814;--surface2:#1e2019;--surface3:#252820;
+  --border:#2a2d24;--border2:#333628;
+  --green:#6dbb5a;--green-dim:#3d6e2e;--green-pale:rgba(109,187,90,0.08);
+  --amber:#d4962a;--amber-pale:rgba(212,150,42,0.10);
+  --blue:#5b8fd4;--blue-pale:rgba(91,143,212,0.10);
+  --red:#d45b5b;--red-pale:rgba(212,91,91,0.10);
+  --purple:#9b7dd4;--purple-pale:rgba(155,125,212,0.10);
+  --teal:#4ab8a8;--teal-pale:rgba(74,184,168,0.10);
+  --slate:#606870;--slate-pale:rgba(96,104,112,0.15);
+  --text:#dde0cc;--text-mid:#7a7e6a;--text-dim:#3a3d2e;--white:#ecefd8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);font-family:'Karla',sans-serif;color:var(--text);display:flex;flex-direction:column;font-size:14px;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;background:var(–surface);border-bottom:1px solid var(–border);flex-shrink:0;gap:10px;}
+.logo{font-family:‘Barlow Condensed’,sans-serif;font-size:1.15rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(–white);white-space:nowrap;}
+.logo em{color:var(–green);font-style:normal;}
+.nav-tabs{display:flex;gap:2px;overflow-x:auto;}
+.nav-tab{padding:5px 12px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;background:transparent;border:1px solid transparent;border-radius:5px;color:var(–text-mid);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
+.nav-tab.active{background:var(–surface2);border-color:var(–border2);color:var(–green);}
+.deadline-pill{font-family:‘Barlow Condensed’,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:4px 10px;color:var(–text-dim);white-space:nowrap;}
+.deadline-pill span{color:var(–amber);}
+
+/* ── LAYOUT ── */
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.view{display:none;flex:1;min-height:0;flex-direction:column;}
+.view.active{display:flex;}
+.scroll{flex:1;min-height:0;overflow-y:auto;padding:14px 20px 32px;}
+.scroll::-webkit-scrollbar{width:4px;}
+.scroll::-webkit-scrollbar-thumb{background:var(–border2);}
+
+/* ── WEEK NAV ── */
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(–surface);border-bottom:1px solid var(–border);flex-shrink:0;gap:10px;flex-wrap:wrap;}
+.wnav-btn{background:var(–surface2);border:1px solid var(–border2);color:var(–text-mid);padding:5px 12px;border-radius:5px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.week-title{font-family:‘Barlow Condensed’,sans-serif;font-size:0.95rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(–white);text-align:center;}
+.week-sub{font-size:0.62rem;text-align:center;color:var(–text-mid);margin-top:1px;}
+.prog-bar{height:2px;background:var(–border);flex-shrink:0;}
+.prog-fill{height:100%;background:var(–green);transition:width .3s;}
+
+/* ── WEEK TYPE SELECTOR ── */
+.week-type-row{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(–surface2);border-bottom:1px solid var(–border);flex-shrink:0;flex-wrap:wrap;}
+.wt-label{font-size:0.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(–text-mid);}
+.wt-btn{padding:4px 12px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(–border2);border-radius:4px;color:var(–text-dim);cursor:pointer;transition:all .15s;}
+.wt-btn.active{border-color:var(–green-dim);color:var(–green);background:var(–green-pale);}
+.wt-btn.amber{border-color:rgba(212,150,42,0.4);}
+.wt-btn.amber.active{border-color:var(–amber);color:var(–amber);background:var(–amber-pale);}
+.wt-btn.blue{border-color:rgba(91,143,212,0.3);}
+.wt-btn.blue.active{border-color:var(–blue);color:var(–blue);background:var(–blue-pale);}
+
+/* ── DAY SECTION ── */
+.day-section{margin-bottom:8px;}
+.day-hdr{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.day-lbl{font-family:‘Barlow Condensed’,sans-serif;font-size:0.88rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(–white);}
+.day-line{flex:1;height:1px;background:var(–border);}
+.day-done-badge{font-family:‘Barlow Condensed’,sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(–green);background:var(–green-pale);border:1px solid var(–green-dim);padding:2px 7px;border-radius:3px;}
+
+/* ── SESSION CARD ── */
+.scard{background:var(–surface);border:1px solid var(–border);border-radius:9px;margin-bottom:6px;overflow:hidden;transition:border-color .15s;}
+.scard.done{border-color:var(–green-dim);}
+.scard.skipped{opacity:0.38;}
+.scard-top{display:flex;align-items:center;gap:8px;padding:9px 12px;}
+.check-btn{width:20px;height:20px;border-radius:4px;border:2px solid var(–border2);background:transparent;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-btn.done{background:var(–green);border-color:var(–green);}
+.check-btn.done::after{content:‘✓’;font-size:11px;color:#0e0f0d;font-weight:800;}
+.type-dot{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.scard-info{flex:1;min-width:0;}
+.scard-title{font-size:0.78rem;font-weight:600;color:var(–text);line-height:1.2;}
+.scard-time{font-size:0.63rem;color:var(–text-mid);margin-top:1px;font-family:‘Barlow Condensed’,sans-serif;letter-spacing:0.4px;}
+.star-row{display:flex;gap:2px;flex-shrink:0;}
+.star{font-size:13px;cursor:pointer;color:var(–text-dim);transition:color .1s;line-height:1;}
+.star.lit{color:var(–amber);}
+.expand-btn{background:none;border:none;color:var(–text-dim);cursor:pointer;font-size:11px;padding:2px 4px;transition:transform .15s;flex-shrink:0;}
+.expand-btn.open{transform:rotate(180deg);}
+
+/* ── EDIT PENCIL ── */
+.edit-pencil{background:none;border:none;color:var(–text-dim);cursor:pointer;font-size:11px;padding:2px 5px;border-radius:4px;transition:color .15s;flex-shrink:0;}
+.edit-pencil:hover{color:var(–amber);}
+
+/* ── SESSION DETAIL ── */
+.scard-detail{display:none;padding:0 12px 12px;border-top:1px solid var(–border);}
+.scard-detail.open{display:block;}
+.det-label{font-size:0.62rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(–text-mid);margin:9px 0 4px;}
+.notes-ta{width:100%;background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:7px 9px;font-family:‘Karla’,sans-serif;font-size:0.74rem;color:var(–text);resize:vertical;min-height:52px;outline:none;transition:border-color .15s;}
+.notes-ta:focus{border-color:var(–green-dim);}
+.notes-ta::placeholder{color:var(–text-dim);}
+
+/* ── MUSCLE GROUPS ── */
+.muscle-grid{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.mg-check{display:flex;align-items:center;gap:5px;background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:4px 8px;cursor:pointer;transition:all .15s;user-select:none;}
+.mg-check.checked{background:var(–blue-pale);border-color:var(–blue);}
+.mg-check input{display:none;}
+.mg-label{font-size:0.68rem;font-weight:600;color:var(–text-mid);}
+.mg-check.checked .mg-label{color:var(–blue);}
+
+/* ── SKIP BTN ── */
+.skip-btn{margin-top:7px;background:transparent;border:1px solid var(–border2);color:var(–text-dim);padding:3px 9px;border-radius:4px;font-size:0.65rem;font-family:‘Barlow Condensed’,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.skip-btn:hover{border-color:var(–red);color:var(–red);}
+.skip-btn.active{background:var(–red-pale);border-color:var(–red);color:var(–red);}
+
+/* ── LOG ROUND BTN ── */
+.log-round-btn{width:100%;margin-bottom:7px;background:var(–purple-pale);border:1px dashed var(–purple);color:var(–purple);padding:9px;border-radius:9px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.log-round-btn:hover{background:rgba(155,125,212,0.15);}
+
+/* ── MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:200;display:flex;align-items:center;justify-content:center;padding:14px;}
+.overlay.hidden{display:none;}
+.modal{background:var(–surface);border:1px solid var(–border2);border-radius:12px;width:100%;max-width:530px;max-height:92vh;overflow-y:auto;display:flex;flex-direction:column;}
+.modal::-webkit-scrollbar{width:4px;}
+.modal::-webkit-scrollbar-thumb{background:var(–border2);}
+.modal-hdr{padding:16px 18px 12px;border-bottom:1px solid var(–border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.modal-ttl{font-family:‘Barlow Condensed’,sans-serif;font-size:1.05rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(–white);}
+.modal-close{background:none;border:none;color:var(–text-mid);font-size:1.2rem;cursor:pointer;padding:2px 6px;line-height:1;}
+.modal-body{padding:14px 18px 18px;}
+.form-row{display:flex;gap:9px;margin-bottom:9px;flex-wrap:wrap;}
+.fgrp{flex:1;min-width:110px;}
+.flabel{font-size:0.62rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(–text-mid);margin-bottom:3px;display:block;}
+.finput{width:100%;background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:6px 9px;font-family:‘Karla’,sans-serif;font-size:0.78rem;color:var(–text);outline:none;transition:border-color .15s;}
+.finput:focus{border-color:var(–green-dim);}
+
+/* ── SCORECARD ── */
+.sc-grid{display:grid;gap:3px;margin:8px 0;}
+.sc-cell{background:var(–surface2);border:1px solid var(–border);border-radius:3px;padding:3px 2px;text-align:center;}
+.sc-cell.hdr{background:var(–surface3);font-family:‘Barlow Condensed’,sans-serif;font-size:0.6rem;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(–text-mid);}
+.sc-cell.total-cell{background:var(–surface3);}
+.sc-hole-inp{width:100%;background:transparent;border:none;outline:none;font-family:‘Karla’,sans-serif;font-size:0.76rem;color:var(–text);text-align:center;}
+.sc-hole-inp::placeholder{color:var(–text-dim);}
+.sc-par-val{font-size:0.6rem;color:var(–text-mid);font-family:‘Barlow Condensed’,sans-serif;}
+.sc-totals{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;}
+.sc-tot{background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:5px 10px;text-align:center;flex:1;min-width:72px;}
+.sc-tot-lbl{font-size:0.58rem;text-transform:uppercase;letter-spacing:1px;color:var(–text-mid);font-weight:600;}
+.sc-tot-val{font-family:‘Barlow Condensed’,sans-serif;font-size:1.25rem;font-weight:800;color:var(–white);line-height:1.1;}
+.sc-tot-val.gv{color:var(–green);}
+.sc-tot-val.rv{color:var(–red);}
+.save-btn{width:100%;margin-top:12px;background:var(–green);border:none;color:#0e0f0d;padding:10px;border-radius:7px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.88rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;}
+.save-btn:hover{opacity:0.87;}
+
+/* ── EDIT SESSION MODAL ── */
+.edit-modal .modal{max-width:420px;}
+
+/* ── ROUNDS LIST ── */
+.rounds-toolbar{padding:10px 20px;border-bottom:1px solid var(–border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;}
+.round-entry{background:var(–surface);border:1px solid var(–border);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;transition:border-color .15s;}
+.round-entry:hover{border-color:var(–border2);}
+.re-title{font-size:0.78rem;font-weight:600;color:var(–text);}
+.re-sub{font-size:0.65rem;color:var(–text-mid);margin-top:2px;}
+.re-score{font-family:‘Barlow Condensed’,sans-serif;font-size:1.55rem;font-weight:800;color:var(–white);line-height:1;}
+.re-par{font-size:0.63rem;font-weight:600;text-align:right;}
+.re-par.pos{color:var(–red);}
+.re-par.neg{color:var(–green);}
+.re-par.even{color:var(–text-mid);}
+.del-btn{background:none;border:none;color:var(–text-dim);cursor:pointer;font-size:0.85rem;padding:4px;border-radius:4px;opacity:0;transition:opacity .15s;}
+.round-entry:hover .del-btn{opacity:1;}
+
+/* ── DASHBOARD ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:7px;margin-bottom:14px;}
+.kpi{background:var(–surface);border:1px solid var(–border);border-radius:9px;padding:12px 14px;}
+.kpi-lbl{font-size:0.6rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(–text-mid);margin-bottom:3px;}
+.kpi-val{font-family:‘Barlow Condensed’,sans-serif;font-size:1.9rem;font-weight:900;color:var(–white);line-height:1;}
+.kpi-val.gv{color:var(–green);}
+.kpi-val.av{color:var(–amber);}
+.kpi-sub{font-size:0.62rem;color:var(–text-dim);margin-top:2px;}
+.dash-sec{font-family:‘Barlow Condensed’,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(–text-dim);margin:12px 0 7px;}
+.chart-box{background:var(–surface);border:1px solid var(–border);border-radius:9px;padding:14px;margin-bottom:9px;}
+.chart-ttl{font-family:‘Barlow Condensed’,sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(–text-mid);margin-bottom:10px;}
+.chart-wrap{position:relative;height:140px;width:100%;}
+canvas{display:block;}
+.hcp-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap;}
+.hcp-row input{background:var(–surface2);border:1px solid var(–border2);border-radius:5px;padding:5px 9px;font-family:‘Karla’,sans-serif;font-size:0.78rem;color:var(–text);outline:none;width:85px;}
+.hcp-row input:focus{border-color:var(–green-dim);}
+.hcp-row button{background:var(–green);border:none;color:#0e0f0d;padding:5px 12px;border-radius:5px;font-family:‘Barlow Condensed’,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+.hcp-row-lbl{font-size:0.7rem;color:var(–text-mid);}
+.comp-bars{display:flex;flex-direction:column;gap:5px;}
+.comp-row{display:flex;align-items:center;gap:9px;}
+.comp-lbl{font-size:0.68rem;color:var(–text-mid);min-width:88px;text-align:right;}
+.comp-track{flex:1;height:5px;background:var(–border);border-radius:3px;overflow:hidden;}
+.comp-fill{height:100%;border-radius:3px;transition:width .4s;}
+.comp-pct{font-family:‘Barlow Condensed’,sans-serif;font-size:0.7rem;font-weight:700;color:var(–text-mid);min-width:28px;}
+.no-data{font-size:0.74rem;color:var(–text-dim);font-style:italic;text-align:center;padding:18px 0;}
+
+/* ── MUSCLE HEATMAP ── */
+.muscle-heat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;}
+.mh-cell{background:var(–surface2);border:1px solid var(–border);border-radius:7px;padding:10px 8px;text-align:center;}
+.mh-name{font-family:‘Barlow Condensed’,sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(–text-mid);margin-bottom:4px;}
+.mh-count{font-family:‘Barlow Condensed’,sans-serif;font-size:1.6rem;font-weight:900;line-height:1;}
+.mh-sub{font-size:0.58rem;color:var(–text-dim);margin-top:1px;}
+
+/* ── WEAKNESSES TAB ── */
+.weak-card{background:var(–surface);border:1px solid var(–border);border-radius:9px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;}
+.weak-rank{font-family:‘Barlow Condensed’,sans-serif;font-size:2rem;font-weight:900;line-height:1;min-width:32px;text-align:center;}
+.weak-rank.r1{color:var(–red);}
+.weak-rank.r2{color:var(–amber);}
+.weak-rank.r3{color:var(–amber);opacity:0.7;}
+.weak-rank.r4{color:var(–text-mid);}
+.weak-rank.r5{color:var(–text-dim);}
+.weak-body{flex:1;}
+.weak-title{font-size:0.82rem;font-weight:700;color:var(–white);margin-bottom:3px;}
+.weak-stat{font-family:‘Barlow Condensed’,sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:4px;}
+.weak-desc{font-size:0.7rem;color:var(–text-mid);line-height:1.5;}
+.weak-target{display:inline-block;font-size:0.62rem;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;background:var(–surface2);border:1px solid var(–border2);border-radius:4px;padding:2px 7px;margin-top:5px;color:var(–text-dim);}
+.weak-bar-track{height:4px;background:var(–border);border-radius:2px;margin-top:8px;overflow:hidden;}
+.weak-bar-fill{height:100%;border-radius:2px;}
+.no-rounds-msg{text-align:center;padding:40px 20px;}
+.no-rounds-msg h3{font-family:‘Barlow Condensed’,sans-serif;font-size:1.1rem;font-weight:800;letter-spacing:1px;color:var(–text-mid);margin-bottom:8px;}
+.no-rounds-msg p{font-size:0.74rem;color:var(–text-dim);line-height:1.6;}
+
+/* ── LOADING OVERLAY ── */
+#loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+.loading-spinner{width:32px;height:32px;border:3px solid var(–border2);border-top-color:var(–green);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading-msg{font-family:‘Barlow Condensed’,sans-serif;font-size:0.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(–text-mid);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(–text-dim);flex-shrink:0;transition:background .3s;}
+
+/* ── FLEX BADGE ── */
+.flex-badge{display:inline-block;background:var(–amber);color:#1a1000;font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:2px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;position:relative;top:-1px;}
+</style>
+
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">CJ <em>Tracker</em></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchView('week',this)">Week</button>
+    <button class="nav-tab" onclick="switchView('rounds',this)">Rounds</button>
+    <button class="nav-tab" onclick="switchView('dashboard',this)">Dashboard</button>
+    <button class="nav-tab" onclick="switchView('weaknesses',this)">Weaknesses</button>
+  </div>
+  <div id="sync-dot" class="sync-dot" title="Sync status"></div><div class="deadline-pill">Aug 14 — <span id="wks-left">—</span> wks</div>
+</div>
+
+<div class="main">
+
+<!-- ══════ WEEK VIEW ══════ -->
+
+<div id="view-week" class="view active">
+  <div class="week-nav">
+    <button class="wnav-btn" onclick="changeWeek(-1)">← Prev</button>
+    <div>
+      <div class="week-title" id="wk-title">Week 1</div>
+      <div class="week-sub" id="wk-dates">—</div>
+    </div>
+    <button class="wnav-btn" onclick="changeWeek(1)">Next →</button>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  <div class="week-type-row">
+    <span class="wt-label">Week type:</span>
+    <button class="wt-btn active" onclick="setWeekType('regular',this)">Regular</button>
+    <button class="wt-btn amber" onclick="setWeekType('thu-travel',this)">Travel (Thu)</button>
+    <button class="wt-btn blue" onclick="setWeekType('fri-travel',this)">Travel (Fri)</button>
+  </div>
+  <div class="scroll" id="week-body"></div>
+</div>
+
+<!-- ══════ ROUNDS VIEW ══════ -->
+
+<div id="view-rounds" class="view">
+  <div class="rounds-toolbar">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.88rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--white);">Round Log</div>
+    <button class="log-round-btn" style="width:auto;margin:0;padding:6px 14px;" onclick="openRoundModal()">+ Log Round</button>
+  </div>
+  <div class="scroll" id="rounds-body"></div>
+</div>
+
+<!-- ══════ DASHBOARD VIEW ══════ -->
+
+<div id="view-dashboard" class="view">
+  <div class="scroll" id="dash-body"></div>
+</div>
+
+<!-- ══════ WEAKNESSES VIEW ══════ -->
+
+<div id="view-weaknesses" class="view">
+  <div class="scroll" id="weak-body"></div>
+</div>
+
+</div><!-- /main -->
+
+<!-- ══ ROUND MODAL ══ -->
+
+<div class="overlay hidden" id="round-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl">Log Round</div>
+      <button class="modal-close" onclick="closeModal('round-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="fgrp"><label class="flabel">Course</label><input class="finput" id="sc-course" placeholder="e.g. Oxford Greens"/></div>
+        <div class="fgrp" style="max-width:130px"><label class="flabel">Date</label><input class="finput" type="date" id="sc-date"/></div>
+      </div>
+      <div class="form-row">
+        <div class="fgrp" style="max-width:90px"><label class="flabel">Holes</label>
+          <select class="finput" id="sc-holes" onchange="updateParDisplay()">
+            <option value="18">18</option>
+            <option value="9">9</option>
+          </select>
+        </div>
+        <div class="fgrp" style="max-width:100px"><label class="flabel">Course Par</label>
+          <input class="finput" type="number" id="sc-par" value="72" min="60" max="74" oninput="updateScoreDiff()"/>
+        </div>
+        <div class="fgrp" style="max-width:100px"><label class="flabel">Your Score</label>
+          <input class="finput" type="number" id="sc-score" placeholder="e.g. 89" min="50" max="150" oninput="updateScoreDiff()"/>
+        </div>
+        <div class="fgrp" style="max-width:90px">
+          <label class="flabel">+/− Par</label>
+          <div class="finput" id="sc-diff-display" style="background:var(--surface3);color:var(--text-mid);text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;">—</div>
+        </div>
+      </div>
+      <div class="flabel" style="margin:12px 0 8px;font-size:0.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);">Stats Tracked This Round</div>
+      <div id="stat-rows"></div>
+      <button type="button" onclick="addStatRow()" style="margin-top:6px;background:transparent;border:1px dashed var(--border2);color:var(--text-dim);padding:5px 12px;border-radius:5px;font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;width:100%;">+ Add Stat</button>
+      <div class="fgrp" style="margin-top:12px"><label class="flabel">Round Notes</label>
+        <textarea class="notes-ta" id="sc-notes" placeholder="Key takeaways, what clicked, what didn't..." style="min-height:58px"></textarea>
+      </div>
+      <button class="save-btn" onclick="saveRound()">Save Round</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT SESSION MODAL ══ -->
+
+<div class="overlay hidden edit-modal" id="edit-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <div class="modal-ttl">Edit Session</div>
+      <button class="modal-close" onclick="closeModal('edit-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Session Title</label><input class="finput" id="edit-title"/></div>
+      <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Time Slot</label><input class="finput" id="edit-time"/></div>
+      <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Default Focus / Details</label>
+        <textarea class="notes-ta" id="edit-detail" style="min-height:52px"></textarea>
+      </div>
+      <div class="fgrp"><label class="flabel">Session Type</label>
+        <select class="finput" id="edit-type">
+          <option value="gym">Lift / Gym</option>
+          <option value="golf">Short Game / Golf</option>
+          <option value="driver">Driver / Range</option>
+          <option value="round">Full Round</option>
+          <option value="rest">Recovery / Mobility</option>
+        </select>
+      </div>
+      <button class="save-btn" onclick="saveSessionEdit()" style="margin-top:12px">Save Changes</button>
+      <button class="save-btn" onclick="resetSessionEdit()" style="margin-top:6px;background:var(--surface2);color:var(--text-mid);border:1px solid var(--border2);">Reset to Default</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ROUND VIEW MODAL ══ -->
+
+<div class="overlay hidden" id="rv-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-ttl" id="rv-title">Round</div>
+      <button class="modal-close" onclick="closeModal('rv-overlay')">✕</button>
+    </div>
+    <div class="modal-body" id="rv-body"></div>
+  </div>
+</div>
+
+<div id="loading-overlay"><div class="loading-spinner"></div><div id="loading-msg">Loading…</div></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ═══════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════
+const ORIGIN = new Date('2026-04-14');
+const PARS18 = [4,4,3,4,5,3,4,5,4,4,3,4,5,4,3,4,5,4];
+const PARS9  = [4,4,3,4,5,3,4,5,4];
+const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',driver:'#d4962a',round:'#9b7dd4',rest:'#606870'};
+const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio'];
+
+// Default sessions per week type
+const DEFAULT_SESSIONS = {
+regular:[
+{day:‘Monday’,    sessions:[
+{id:‘mon-am’,time:‘7:30–8:30a’, title:‘Upper Body Lift’,              type:‘gym’,    detail:‘Bench, OHP, pull-ups, cable rows + isolation.’},
+{id:‘mon-pm’,time:‘5:00–6:30p’, title:‘Short Game — Chipping & Putting’,type:‘golf’, detail:‘60% putting (lag + circle drill), 40% chipping. No driver.’},
+]},
+{day:‘Tuesday’,   sessions:[
+{id:‘tue-pm’, time:‘5:15–6:30p’,title:‘Lower Body + Core’,            type:‘gym’,    detail:‘Squats, RDLs, leg press, Pallof press, planks.’},
+{id:‘tue-eve’,time:‘8:00–9:00p’,title:‘At-Home Mat — Iron Striking’,  type:‘golf’,   detail:‘Irons into net. Low point control & divot direction.’},
+]},
+{day:‘Wednesday’, sessions:[
+{id:‘wed-pm’, time:‘5:15–6:30p’,title:‘Driving Range — Driver-Heavy’, type:‘driver’, detail:‘Lead with driver (15–20 reps), then mid-irons to wedge.’,flex:true},
+{id:‘wed-eve’,time:‘8:00–9:00p’,title:‘Mobility + Sauna’,             type:‘rest’,   detail:‘T-spine, hips, shoulders. 20 min stretch → 20 min sauna.’},
+]},
+{day:‘Thursday’,  sessions:[
+{id:‘thu-pm’, time:‘5:15–6:30p’,title:‘Upper Body Lift #2’,           type:‘gym’,    detail:‘Incline, dips, face pulls, rear delt, hammer curls.’},
+{id:‘thu-eve’,time:‘8:00–9:00p’,title:‘At-Home Driver — Mat & Net’,   type:‘driver’, detail:‘20–25 driver swings. Tempo & sequencing only.’},
+]},
+{day:‘Friday’,    sessions:[
+{id:‘fri-am’, time:‘7:30–8:30a’,title:‘Active Recovery’,              type:‘rest’,   detail:‘Incline treadmill walk or sauna + light stretch.’},
+{id:‘fri-pm’, time:‘5:00–6:30p’,title:‘Weekend Tune-Up’,              type:‘golf’,   detail:‘Wedge–7i only + short game. No driver.’},
+]},
+{day:‘Saturday’,  sessions:[
+{id:‘sat-rnd’,time:‘Morning’,   title:‘Play Round — Full 18 / Twilight 9’,type:‘round’,detail:‘Track putts + one focus stat. Simulate pressure.’,isRound:true},
+{id:‘sat-eve’,time:‘Evening (opt)’,title:‘Sauna + Light Bodyweight’,  type:‘rest’,   detail:‘Pushups, planks, hip stretch. Optional.’},
+]},
+{day:‘Sunday’,    sessions:[
+{id:‘sun-rnd’,time:‘Morning’,   title:‘Practice Round / Structured 90 Min’,type:‘round’,detail:‘Twilight 9 with game plan OR range + short game.’,isRound:true},
+{id:‘sun-pm’, time:‘Afternoon’, title:‘Core & Mobility’,               type:‘rest’,   detail:‘Dead bugs, Pallof press, glute bridges. Hip flexors, T-spine, shoulder capsule stretch. 20–30 min total.’},
+]},
+],
+‘thu-travel’:[
+{day:‘Monday’,    sessions:[
+{id:‘mon-am’,time:‘7:30–8:30a’, title:‘Upper Body Lift’,              type:‘gym’,    detail:‘Bench, OHP, pull-ups, rows. Heavier — one of two lifts this week.’},
+{id:‘mon-pm’,time:‘5:00–6:30p’, title:‘Short Game — Chipping & Putting’,type:‘golf’, detail:‘Lock in feel before the break. Lag putts + circle drill + chipping.’},
+]},
+{day:‘Tuesday’,   sessions:[
+{id:‘tue-pm’, time:‘5:15–6:30p’,title:‘Lower Body + Core’,            type:‘gym’,    detail:‘Squats, RDLs, single-leg, Pallof press. Only lower body this week.’},
+{id:‘tue-eve’,time:‘8:00–9:00p’,title:‘At-Home Driver + Iron Work’,   type:‘driver’, detail:‘15–20 driver reps (tempo), then irons. 50–60 deliberate reps.’},
+]},
+{day:‘Wednesday’, sessions:[
+{id:‘wed-pm’, time:‘5:15–6:30p’,title:‘Driving Range — Driver-Heavy’, type:‘driver’, detail:‘20+ driver reps. Shape shots, sim fairways. Then irons to wedge.’,flex:true},
+{id:‘wed-eve’,time:‘8:00–9:00p’,title:‘Mobility + Sauna — Pre-Travel’,type:‘rest’,   detail:‘T-spine, hips, shoulders. 20 min sauna. Prep body for travel.’},
+]},
+{day:‘Thursday’,  sessions:[
+{id:‘thu-note’,time:‘All day’,  title:‘🛫 Travel Day — Fully Cleared’,type:‘rest’,   detail:‘Departing today. No sessions.’,unavailable:true},
+]},
+{day:‘Friday’,    sessions:[
+{id:‘fri-travel’,time:‘All day’,title:‘✈️ Traveling’,                 type:‘rest’,   detail:‘Hotel gym or walk if accessible.’,unavailable:true},
+]},
+{day:‘Saturday’,  sessions:[
+{id:‘sat-travel’,time:‘All day’,title:‘✈️ Traveling’,                 type:‘rest’,   detail:‘Pushups/planks if you feel like it.’,unavailable:true},
+]},
+{day:‘Sunday’,    sessions:[
+{id:‘sun-return’,time:‘Before 5pm’,title:‘✈️ Return Travel’,          type:‘rest’,   detail:‘Unavailable until 5pm.’,unavailable:true},
+{id:‘sun-pm’, time:‘5:00p–dusk’,title:‘Soft Reset — Putting Mat + Mobility’,type:‘rest’,detail:‘20 min putting mat. Hip and shoulder stretch. Reset before Monday.’},
+]},
+],
+‘fri-travel’:[
+{day:‘Monday’,    sessions:[
+{id:‘mon-am’,time:‘7:30–8:30a’, title:‘Upper Body Lift’,              type:‘gym’,    detail:‘Bench, OHP, pull-ups, rows. Full session.’},
+{id:‘mon-pm’,time:‘5:00–6:30p’, title:‘Short Game — Chipping & Putting’,type:‘golf’, detail:‘Lag putts + circle drill + varied lie chipping.’},
+]},
+{day:‘Tuesday’,   sessions:[
+{id:‘tue-pm’, time:‘5:15–6:30p’,title:‘Lower Body + Core’,            type:‘gym’,    detail:‘Squats, RDLs, leg press, Pallof press, planks.’},
+{id:‘tue-eve’,time:‘8:00–9:00p’,title:‘At-Home Driver + Iron Work’,   type:‘driver’, detail:‘15–20 driver reps (tempo), then irons. Deliberate.’},
+]},
+{day:‘Wednesday’, sessions:[
+{id:‘wed-pm’, time:‘5:15–6:30p’,title:‘Driving Range — Driver-Heavy’, type:‘driver’, detail:‘Lead with driver, then irons to wedge.’,flex:true},
+{id:‘wed-eve’,time:‘8:00–9:00p’,title:‘Mobility + Sauna’,             type:‘rest’,   detail:‘T-spine, hips, shoulders. 20 min sauna.’},
+]},
+{day:‘Thursday’,  sessions:[
+{id:‘thu-pm’, time:‘5:15–6:30p’,title:‘Upper Body Lift #2’,           type:‘gym’,    detail:‘Incline, dips, face pulls, rear delt. Last lift before trip.’},
+{id:‘thu-eve’,time:‘8:00–9:00p’,title:‘At-Home Driver — Mat & Net’,   type:‘driver’, detail:‘20–25 driver swings. Groove it before you leave.’},
+]},
+{day:‘Friday’,    sessions:[
+{id:‘fri-am’, time:‘7:30–8:30a’,title:‘Pre-Travel Short Game Tune-Up’,type:‘golf’,   detail:‘Chipping green or putting mat. 30–40 min. Light, no grinding.’},
+{id:‘fri-dep’,time:‘5:00p →’,   title:‘🛫 Departed — Evening Cleared’,type:‘rest’,   detail:‘Travel begins. Morning slot is last window.’,unavailable:true},
+]},
+{day:‘Saturday’,  sessions:[
+{id:‘sat-travel’,time:‘All day’,title:‘✈️ Traveling’,                 type:‘rest’,   detail:‘Hotel gym or bodyweight if accessible.’,unavailable:true},
+]},
+{day:‘Sunday’,    sessions:[
+{id:‘sun-travel’,time:‘All day’,title:‘✈️ Returning by 5pm’,          type:‘rest’,   detail:‘Putting mat + mobility at home if you land with energy.’,unavailable:true},
+]},
+],
+};
+
+// ═══════════════════════════════════════
+// SUPABASE
+// ═══════════════════════════════════════
+const SUPA_URL = ‘https://ikvvdqoxuecajiewioel.supabase.co’;
+const SUPA_KEY = ‘eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrdnZkcW94dWVjYWppZXdpb2VsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDA3MDUsImV4cCI6MjA5MTU3NjcwNX0.8HOaM1qsWvFzXqayL8Pdb9OCsb7BkYpe9zKyqH4gLGw’;
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+const UID = ‘cj’;
+
+// ── Loading overlay helpers ──
+function showLoading(msg=‘Loading…’){
+document.getElementById(‘loading-overlay’).style.display=‘flex’;
+document.getElementById(‘loading-msg’).textContent=msg;
+}
+function hideLoading(){ document.getElementById(‘loading-overlay’).style.display=‘none’; }
+function showSync(ok){
+const el=document.getElementById(‘sync-dot’);
+el.style.background=ok?‘var(–green)’:‘var(–red)’;
+el.title=ok?‘Synced’:‘Sync error’;
+setTimeout(()=>el.style.background=‘var(–text-dim)’,3000);
+}
+
+// ── In-memory cache (avoids redundant fetches within a session) ──
+let cache = { weekMeta:{}, weekSessions:{}, rounds:null, hcpLog:null };
+
+function getWK(offset){
+const d=new Date(ORIGIN); d.setDate(d.getDate()+offset*7);
+return ‘wk_’+d.toISOString().slice(0,10);
+}
+
+// ── WEEK META (type + customSessions) ──
+async function loadWeekMeta(offset){
+const key=getWK(offset);
+if(cache.weekMeta[key]) return cache.weekMeta[key];
+const {data}=await sb.from(‘week_meta’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key).maybeSingle();
+const meta=data||{week_key:key,week_type:‘regular’,custom_sessions:{}};
+cache.weekMeta[key]=meta;
+return meta;
+}
+
+async function saveWeekType(offset,type){
+const key=getWK(offset);
+const existing=await loadWeekMeta(offset);
+const row={user_id:UID,week_key:key,week_type:type,custom_sessions:existing.custom_sessions||{}};
+const {error}=await sb.from(‘week_meta’).upsert(row,{onConflict:‘week_key’});
+showSync(!error);
+cache.weekMeta[key]={…existing,…row};
+}
+
+async function saveCustomSession(offset,sid,customData){
+const key=getWK(offset);
+const existing=await loadWeekMeta(offset);
+const cs={…(existing.custom_sessions||{}), [sid]:customData};
+const row={user_id:UID,week_key:key,week_type:existing.week_type||‘regular’,custom_sessions:cs};
+const {error}=await sb.from(‘week_meta’).upsert(row,{onConflict:‘week_key’});
+showSync(!error);
+cache.weekMeta[key]={…existing,…row,custom_sessions:cs};
+}
+
+async function resetCustomSession(offset,sid){
+const key=getWK(offset);
+const existing=await loadWeekMeta(offset);
+const cs={…(existing.custom_sessions||{})};
+delete cs[sid];
+const row={user_id:UID,week_key:key,week_type:existing.week_type||‘regular’,custom_sessions:cs};
+const {error}=await sb.from(‘week_meta’).upsert(row,{onConflict:‘week_key’});
+showSync(!error);
+cache.weekMeta[key]={…existing,…row,custom_sessions:cs};
+}
+
+// ── WEEK SESSIONS ──
+async function loadWeekSessions(offset){
+const key=getWK(offset);
+if(cache.weekSessions[key]) return cache.weekSessions[key];
+const {data}=await sb.from(‘week_sessions’).select(’*’).eq(‘user_id’,UID).eq(‘week_key’,key);
+const map={};
+(data||[]).forEach(r=>{ map[r.session_id]={done:r.done,skipped:r.skipped,rating:r.rating,notes:r.notes,muscles:r.muscles||[],expanded:r.expanded}; });
+cache.weekSessions[key]=map;
+return map;
+}
+
+async function upsertSession(offset,sid,fields){
+const key=getWK(offset);
+if(!cache.weekSessions[key]) cache.weekSessions[key]={};
+cache.weekSessions[key][sid]={…(cache.weekSessions[key][sid]||{}),…fields};
+const row={user_id:UID,week_key:key,session_id:sid,…fields};
+const {error}=await sb.from(‘week_sessions’).upsert(row,{onConflict:‘user_id,week_key,session_id’});
+showSync(!error);
+}
+
+// ── ROUNDS ──
+async function loadRounds(){
+if(cache.rounds!==null) return cache.rounds;
+const {data}=await sb.from(‘rounds’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:false});
+cache.rounds=(data||[]).map(r=>({
+course:r.course, date:r.date, holes:r.holes,
+totalScore:r.total_score, totalPar:r.total_par,
+stats:r.stats||{}, notes:r.notes, _id:r.id
+}));
+return cache.rounds;
+}
+
+async function insertRound(round){
+const row={user_id:UID,course:round.course,date:round.date,holes:round.holes,
+total_score:round.totalScore,total_par:round.totalPar,stats:round.stats,notes:round.notes};
+const {data,error}=await sb.from(‘rounds’).insert(row).select().single();
+showSync(!error);
+cache.rounds=null; // invalidate
+return data;
+}
+
+async function deleteRoundById(id){
+const {error}=await sb.from(‘rounds’).delete().eq(‘id’,id);
+showSync(!error);
+cache.rounds=null;
+}
+
+// ── HCP LOG ──
+async function loadHcpLog(){
+if(cache.hcpLog!==null) return cache.hcpLog;
+const {data}=await sb.from(‘hcp_log’).select(’*’).eq(‘user_id’,UID).order(‘date’,{ascending:true});
+cache.hcpLog=(data||[]).map(r=>({date:r.date,val:parseFloat(r.val),_id:r.id}));
+return cache.hcpLog;
+}
+
+async function insertHcp(val){
+const row={user_id:UID,date:new Date().toISOString().slice(0,10),val};
+const {error}=await sb.from(‘hcp_log’).insert(row);
+showSync(!error);
+cache.hcpLog=null;
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let currentWeekOffset = 0;
+let editingSessionId = null;
+let editingSessionDay = null;
+let hcpChartInst = null, scoresChartInst = null;
+
+// ═══════════════════════════════════════
+// COUNTDOWN
+// ═══════════════════════════════════════
+document.getElementById(‘wks-left’).textContent =
+Math.max(0,Math.ceil((new Date(‘2026-08-14’)-new Date())/604800000));
+
+// ═══════════════════════════════════════
+// VIEW SWITCH
+// ═══════════════════════════════════════
+function switchView(v,btn){
+document.querySelectorAll(’.view’).forEach(el=>el.classList.remove(‘active’));
+document.querySelectorAll(’.nav-tab’).forEach(el=>el.classList.remove(‘active’));
+document.getElementById(‘view-’+v).classList.add(‘active’);
+btn.classList.add(‘active’);
+if(v===‘dashboard’) renderDashboard();
+if(v===‘rounds’) renderRoundsView();
+if(v===‘weaknesses’) renderWeaknesses();
+}
+
+// ═══════════════════════════════════════
+// WEEK VIEW
+// ═══════════════════════════════════════
+function changeWeek(dir){ currentWeekOffset+=dir; renderWeekView(); }
+
+async function setWeekType(type,btn){
+document.querySelectorAll(’.wt-btn’).forEach(b=>b.classList.remove(‘active’));
+btn.classList.add(‘active’);
+await saveWeekType(currentWeekOffset,type);
+renderWeekView();
+}
+
+function getWeekDates(offset){
+const mon=new Date(ORIGIN); mon.setDate(mon.getDate()+offset*7);
+const sun=new Date(mon); sun.setDate(sun.getDate()+6);
+const f=d=>d.toLocaleDateString(‘en-US’,{month:‘short’,day:‘numeric’});
+return `${f(mon)} – ${f(sun)}`;
+}
+
+async function renderWeekView(){
+document.getElementById(‘wk-title’).textContent=`Week ${currentWeekOffset+1}`;
+document.getElementById(‘wk-dates’).textContent=getWeekDates(currentWeekOffset);
+const container=document.getElementById(‘week-body’);
+container.innerHTML=’<div class="no-data" style="padding-top:30px">Loading…</div>’;
+
+const [meta, sessions] = await Promise.all([
+loadWeekMeta(currentWeekOffset),
+loadWeekSessions(currentWeekOffset)
+]);
+
+const wtype=meta.week_type||‘regular’;
+const customSessions=meta.custom_sessions||{};
+
+// Sync week type buttons
+document.querySelectorAll(’.wt-btn’).forEach(b=>b.classList.remove(‘active’));
+const btns=document.querySelectorAll(’.wt-btn’);
+const typeIdx={regular:0,‘thu-travel’:1,‘fri-travel’:2};
+if(btns[typeIdx[wtype]]) btns[typeIdx[wtype]].classList.add(‘active’);
+
+const template=DEFAULT_SESSIONS[wtype];
+let total=0,done=0;
+container.innerHTML=’’;
+
+template.forEach(dayObj=>{
+const sec=document.createElement(‘div’); sec.className=‘day-section’;
+const allDone=dayObj.sessions.filter(s=>!s.unavailable).every(s=>sessions[s.id]?.done);
+sec.innerHTML=`<div class="day-hdr"><div class="day-lbl">${dayObj.day}</div><div class="day-line"></div>${allDone&&dayObj.sessions.some(s=>!s.unavailable)?'<div class="day-done-badge">✓ Done</div>':''}</div>`;
+
+```
+if((dayObj.day==='Saturday'||dayObj.day==='Sunday')&&wtype==='regular'){
+  const b=document.createElement('button'); b.className='log-round-btn';
+  b.textContent=`+ Log ${dayObj.day} Round`;
+  b.onclick=()=>openRoundModal(); sec.appendChild(b);
+}
+
+dayObj.sessions.forEach(s=>{
+  if(s.unavailable){
+    const card=document.createElement('div'); card.className='scard skipped'; card.style.opacity='0.3';
+    card.innerHTML=`<div class="scard-top"><div class="type-dot" style="background:var(--slate)"></div><div class="scard-info"><div class="scard-title">${s.title}</div><div class="scard-time">${s.time}</div></div></div>`;
+    sec.appendChild(card); return;
+  }
+  total++;
+  const sd=sessions[s.id]||{};
+  const custom=customSessions[s.id];
+  const title=custom?.title||s.title;
+  const time=custom?.time||s.time;
+  const detail=custom?.detail||s.detail;
+  const type=custom?.type||s.type;
+  if(sd.done) done++;
+
+  const card=document.createElement('div');
+  card.className='scard'+(sd.done?' done':'')+(sd.skipped?' skipped':'');
+  const muscleHtml=type==='gym'?buildMuscleHtml(s.id,sd.muscles||[]):'';
+  card.innerHTML=`
+    <div class="scard-top">
+      <div class="check-btn ${sd.done?'done':''}" onclick="toggleDone('${s.id}')"></div>
+      <div class="type-dot" style="background:${TYPE_CLR[type]}"></div>
+      <div class="scard-info">
+        <div class="scard-title">${title}${s.flex?'<span class="flex-badge">or Twilight 9</span>':''}</div>
+        <div class="scard-time">${time}</div>
+      </div>
+      <div class="star-row">${[1,2,3,4,5].map(n=>`<span class="star ${(sd.rating||0)>=n?'lit':''}" onclick="setRating('${s.id}',${n})">★</span>`).join('')}</div>
+      <button class="edit-pencil" onclick="openEditModal('${s.id}','${dayObj.day}')">✏️</button>
+      <button class="expand-btn ${sd.expanded?'open':''}" onclick="toggleExpand('${s.id}')">▼</button>
+    </div>
+    <div class="scard-detail ${sd.expanded?'open':''}">
+      <div class="det-label">Focus</div>
+      <div style="font-size:0.71rem;color:var(--text-mid);margin-bottom:7px;line-height:1.5">${detail}</div>
+      ${muscleHtml}
+      <div class="det-label">Session Notes</div>
+      <textarea class="notes-ta" placeholder="What did you work on? How did it feel?" onblur="saveNotes('${s.id}',this.value)">${sd.notes||''}</textarea>
+      <button class="skip-btn ${sd.skipped?'active':''}" onclick="toggleSkip('${s.id}')">${sd.skipped?'Unskip':'Mark Skipped'}</button>
+    </div>
+  `;
+  sec.appendChild(card);
+});
+container.appendChild(sec);
+```
+
+});
+
+const pct=total>0?Math.round(done/total*100):0;
+document.getElementById(‘prog-fill’).style.width=pct+’%’;
+}
+
+function buildMuscleHtml(sid,checked){
+return `<div class="det-label">Muscle Groups / Focus</div>
+
+  <div class="muscle-grid">${MUSCLE_GROUPS.map(m=>`
+    <div class="mg-check ${checked.includes(m)?'checked':''}" onclick="toggleMuscle('${sid}','${m}',this)">
+      <span class="mg-label">${m}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+async function toggleDone(sid){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+await upsertSession(currentWeekOffset,sid,{done:!current.done,skipped:current.skipped||false,rating:current.rating||0,notes:current.notes||’’,muscles:current.muscles||[],expanded:current.expanded||false});
+renderWeekView();
+}
+
+async function setRating(sid,n){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+await upsertSession(currentWeekOffset,sid,{done:current.done||false,skipped:current.skipped||false,rating:n,notes:current.notes||’’,muscles:current.muscles||[],expanded:current.expanded||false});
+renderWeekView();
+}
+
+async function toggleExpand(sid){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+await upsertSession(currentWeekOffset,sid,{done:current.done||false,skipped:current.skipped||false,rating:current.rating||0,notes:current.notes||’’,muscles:current.muscles||[],expanded:!current.expanded});
+renderWeekView();
+}
+
+async function saveNotes(sid,val){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+await upsertSession(currentWeekOffset,sid,{done:current.done||false,skipped:current.skipped||false,rating:current.rating||0,notes:val,muscles:current.muscles||[],expanded:current.expanded||false});
+}
+
+async function toggleSkip(sid){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+await upsertSession(currentWeekOffset,sid,{done:current.done||false,skipped:!current.skipped,rating:current.rating||0,notes:current.notes||’’,muscles:current.muscles||[],expanded:current.expanded||false});
+renderWeekView();
+}
+
+async function toggleMuscle(sid,muscle,el){
+const sessions=await loadWeekSessions(currentWeekOffset);
+const current=sessions[sid]||{};
+let muscles=[…(current.muscles||[])];
+if(muscles.includes(muscle)) muscles=muscles.filter(m=>m!==muscle);
+else muscles.push(muscle);
+await upsertSession(currentWeekOffset,sid,{done:current.done||false,skipped:current.skipped||false,rating:current.rating||0,notes:current.notes||’’,muscles,expanded:current.expanded||false});
+el.classList.toggle(‘checked’,muscles.includes(muscle));
+}
+
+// ═══════════════════════════════════════
+// EDIT SESSION MODAL
+// ═══════════════════════════════════════
+async function openEditModal(sid,day){
+editingSessionId=sid; editingSessionDay=day;
+const meta=await loadWeekMeta(currentWeekOffset);
+const wtype=meta.week_type||‘regular’;
+const template=DEFAULT_SESSIONS[wtype];
+let defSession=null;
+template.forEach(d=>d.sessions.forEach(s=>{ if(s.id===sid) defSession=s; }));
+const custom=(meta.custom_sessions||{})[sid];
+document.getElementById(‘edit-title’).value=custom?.title||defSession?.title||’’;
+document.getElementById(‘edit-time’).value=custom?.time||defSession?.time||’’;
+document.getElementById(‘edit-detail’).value=custom?.detail||defSession?.detail||’’;
+document.getElementById(‘edit-type’).value=custom?.type||defSession?.type||‘gym’;
+document.getElementById(‘edit-overlay’).classList.remove(‘hidden’);
+}
+
+async function saveSessionEdit(){
+await saveCustomSession(currentWeekOffset, editingSessionId, {
+title:document.getElementById(‘edit-title’).value,
+time:document.getElementById(‘edit-time’).value,
+detail:document.getElementById(‘edit-detail’).value,
+type:document.getElementById(‘edit-type’).value,
+});
+closeModal(‘edit-overlay’);
+renderWeekView();
+}
+
+async function resetSessionEdit(){
+await resetCustomSession(currentWeekOffset, editingSessionId);
+closeModal(‘edit-overlay’);
+renderWeekView();
+}
+
+// ═══════════════════════════════════════
+// ROUND MODAL
+// ═══════════════════════════════════════
+const STAT_OPTIONS=[
+{value:‘putts’,label:‘Putts’},
+{value:‘gir’,label:‘Greens in Regulation’},
+{value:‘fairways’,label:‘Fairways Hit’},
+{value:‘updown’,label:‘Up-&-Down %’},
+{value:‘penalty’,label:‘Penalty Strokes’},
+{value:‘birdies’,label:‘Birdies’},
+{value:‘bogeys’,label:‘Bogeys’},
+];
+
+function openRoundModal(){
+document.getElementById(‘sc-course’).value=’’;
+document.getElementById(‘sc-date’).value=new Date().toISOString().slice(0,10);
+document.getElementById(‘sc-holes’).value=‘18’;
+document.getElementById(‘sc-par’).value=‘72’;
+document.getElementById(‘sc-score’).value=’’;
+document.getElementById(‘sc-diff-display’).textContent=’—’;
+document.getElementById(‘sc-diff-display’).style.color=‘var(–text-mid)’;
+document.getElementById(‘sc-notes’).value=’’;
+document.getElementById(‘stat-rows’).innerHTML=’’;
+addStatRow();
+document.getElementById(‘round-overlay’).classList.remove(‘hidden’);
+}
+
+function updateParDisplay(){
+const holes=parseInt(document.getElementById(‘sc-holes’).value);
+document.getElementById(‘sc-par’).value=holes===9?36:72;
+updateScoreDiff();
+}
+
+function updateScoreDiff(){
+const score=parseInt(document.getElementById(‘sc-score’).value);
+const par=parseInt(document.getElementById(‘sc-par’).value);
+const el=document.getElementById(‘sc-diff-display’);
+if(isNaN(score)||isNaN(par)){el.textContent=’—’;el.style.color=‘var(–text-mid)’;return;}
+const d=score-par;
+el.textContent=d===0?‘E’:(d>0?’+’+d:’’+d);
+el.style.color=d>0?‘var(–red)’:d<0?‘var(–green)’:‘var(–text-mid)’;
+}
+
+function addStatRow(){
+const container=document.getElementById(‘stat-rows’);
+const row=document.createElement(‘div’);
+row.className=‘form-row’; row.style.marginBottom=‘6px’;
+row.innerHTML=` <div class="fgrp"> <select class="finput stat-type">${STAT_OPTIONS.map(o=>`<option value="${o.value}">${o.label}</option>`).join('')}</select> </div> <div class="fgrp" style="max-width:90px"> <input class="finput stat-val" type="number" placeholder="Value" min="0"/> </div> <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 4px;font-size:1rem;flex-shrink:0;align-self:center;">✕</button> `;
+container.appendChild(row);
+}
+
+function closeModal(id){ document.getElementById(id).classList.add(‘hidden’); }
+
+async function saveRound(){
+const score=parseInt(document.getElementById(‘sc-score’).value);
+const par=parseInt(document.getElementById(‘sc-par’).value);
+const stats={};
+document.querySelectorAll(’#stat-rows .form-row’).forEach(row=>{
+const type=row.querySelector(’.stat-type’)?.value;
+const val=row.querySelector(’.stat-val’)?.value;
+if(type&&val) stats[type]=parseFloat(val);
+});
+const round={
+course:document.getElementById(‘sc-course’).value||‘Unknown Course’,
+date:document.getElementById(‘sc-date’).value,
+holes:parseInt(document.getElementById(‘sc-holes’).value),
+totalScore:isNaN(score)?null:score,
+totalPar:isNaN(par)?72:par,
+stats, notes:document.getElementById(‘sc-notes’).value,
+};
+showLoading(‘Saving round…’);
+await insertRound(round);
+hideLoading();
+closeModal(‘round-overlay’);
+renderRoundsView();
+}
+
+// ═══════════════════════════════════════
+// ROUNDS VIEW
+// ═══════════════════════════════════════
+async function renderRoundsView(){
+const c=document.getElementById(‘rounds-body’);
+c.innerHTML=’<div class="no-data" style="padding-top:30px">Loading…</div>’;
+const rounds=await loadRounds();
+c.innerHTML=’’;
+if(!rounds.length){ c.innerHTML=’<div class="no-data" style="padding-top:40px">No rounds logged yet.</div>’; return; }
+rounds.forEach((r,idx)=>{
+const d=(r.totalScore&&r.totalPar)?r.totalScore-r.totalPar:null;
+const ds=d===null?’—’:d===0?‘E’:(d>0?’+’+d:’’+d);
+const dc=d===null?‘even’:d>0?‘pos’:d<0?‘neg’:‘even’;
+const statKeys=Object.keys(r.stats||{});
+const statPreview=statKeys.length>0?` · ${STAT_OPTIONS.find(s=>s.value===statKeys[0])?.label||statKeys[0]}: ${r.stats[statKeys[0]]}${statKeys.length>1?' +'+(statKeys.length-1)+' more':''}`:’’;
+const row=document.createElement(‘div’); row.className=‘round-entry’;
+row.innerHTML=`<div style="flex:1"><div class="re-title">${r.course}</div> <div class="re-sub">${r.date} · ${r.holes} holes${statPreview}</div></div> <div style="text-align:right"><div class="re-score">${r.totalScore||'—'}</div><div class="re-par ${dc}">${ds}</div></div> <button class="del-btn" onclick="deleteRound('${r._id}',event)">✕</button>`;
+row.addEventListener(‘click’,()=>viewRound(idx));
+c.appendChild(row);
+});
+}
+
+async function deleteRound(id,e){
+e.stopPropagation();
+await deleteRoundById(id);
+renderRoundsView();
+}
+
+async function viewRound(idx){
+const rounds=await loadRounds();
+const r=rounds[idx];
+const d=(r.totalScore&&r.totalPar)?r.totalScore-r.totalPar:null;
+const ds=d===null?’—’:d===0?‘E’:(d>0?’+’+d:’’+d);
+const statLabels={putts:‘Putts’,gir:‘GIR’,fairways:‘Fairways Hit’,updown:‘Up-&-Down %’,penalty:‘Penalties’,birdies:‘Birdies’,bogeys:‘Bogeys’};
+document.getElementById(‘rv-title’).textContent=r.course;
+const statsHtml=Object.entries(r.stats||{}).map(([k,v])=>`<div class="sc-tot"><div class="sc-tot-lbl">${statLabels[k]||k}</div><div class="sc-tot-val av">${v}</div></div>`).join(’’);
+document.getElementById(‘rv-body’).innerHTML=` <div class="sc-totals" style="margin-bottom:12px"> <div class="sc-tot"><div class="sc-tot-lbl">Date</div><div style="font-size:0.82rem;font-weight:600;color:var(--white)">${r.date}</div></div> <div class="sc-tot"><div class="sc-tot-lbl">Holes</div><div class="sc-tot-val">${r.holes}</div></div> <div class="sc-tot"><div class="sc-tot-lbl">Score</div><div class="sc-tot-val">${r.totalScore||'—'}</div></div> <div class="sc-tot"><div class="sc-tot-lbl">Par</div><div class="sc-tot-val">${r.totalPar||'—'}</div></div> <div class="sc-tot"><div class="sc-tot-lbl">+/−</div><div class="sc-tot-val ${d>0?'rv':d<0?'gv':''}">${ds}</div></div> </div> ${statsHtml?`<div class="sc-totals" style="margin-bottom:12px">${statsHtml}</div>`:''} ${r.notes?`<div class="det-label">Notes</div><div style="font-size:0.72rem;color:var(--text-mid);line-height:1.6;margin-top:4px">${r.notes}</div>`:''} `;
+document.getElementById(‘rv-overlay’).classList.remove(‘hidden’);
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+async function renderDashboard(){
+const dashScroll=document.getElementById(‘dash-body’);
+dashScroll.innerHTML=’<div class="no-data" style="padding-top:30px">Loading…</div>’;
+
+const [rounds, hcpLog] = await Promise.all([loadRounds(), loadHcpLog()]);
+
+const totalR=rounds.length;
+const avgScore=totalR>0?Math.round(rounds.reduce((a,r)=>a+(r.totalScore||0),0)/totalR):null;
+const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:17.5;
+const drop=+(17.5-latestHcp).toFixed(1);
+const wksLeft=Math.max(0,Math.ceil((new Date(‘2026-08-14’)-new Date())/604800000));
+
+// Completion — scan all cached week sessions
+let totalS=0,doneS=0;
+for(const key of Object.keys(cache.weekSessions)){
+const wkOffset=Object.keys(cache.weekSessions).indexOf(key);
+const meta=cache.weekMeta[key]||{week_type:‘regular’};
+const wtype=meta.week_type||‘regular’;
+const sessions=cache.weekSessions[key]||{};
+DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
+if(s.unavailable) return; totalS++;
+if(sessions[s.id]?.done) doneS++;
+}));
+}
+const compPct=totalS>0?Math.round(doneS/totalS*100):0;
+
+// Muscle counts from cache
+const mCounts={}; MUSCLE_GROUPS.forEach(m=>mCounts[m]=0);
+Object.values(cache.weekSessions).forEach(sessions=>{
+Object.values(sessions).forEach(sd=>{
+if(sd.muscles) sd.muscles.forEach(m=>{ if(mCounts[m]!==undefined) mCounts[m]++; });
+});
+});
+const maxM=Math.max(1,…Object.values(mCounts));
+
+dashScroll.innerHTML=’’;
+
+// KPIs
+const kg=document.createElement(‘div’); kg.className=‘kpi-grid’;
+kg.innerHTML=`<div class="kpi"><div class="kpi-lbl">Current HCP</div><div class="kpi-val av">${latestHcp}</div><div class="kpi-sub">Target: 14.0</div></div> <div class="kpi"><div class="kpi-lbl">HCP Drop</div><div class="kpi-val ${drop>0?'gv':''}">${drop>0?'−'+drop:drop}</div><div class="kpi-sub">Need −3.5 total</div></div> <div class="kpi"><div class="kpi-lbl">Rounds Played</div><div class="kpi-val">${totalR}</div><div class="kpi-sub">All logged rounds</div></div> <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${totalR>0?'per round':'no data'}</div></div> <div class="kpi"><div class="kpi-lbl">Sessions Done</div><div class="kpi-val ${compPct>=80?'gv':''}">${compPct}%</div><div class="kpi-sub">${doneS} of ${totalS}</div></div> <div class="kpi"><div class="kpi-lbl">Weeks Left</div><div class="kpi-val av">${wksLeft}</div><div class="kpi-sub">Until Aug 14</div></div>`;
+dashScroll.appendChild(kg);
+
+// HCP input
+const hs=document.createElement(‘div’); hs.innerHTML=’<div class="dash-sec">Handicap Tracker</div>’;
+const hr=document.createElement(‘div’); hr.className=‘hcp-row’;
+hr.innerHTML=`<span class="hcp-row-lbl">Log today's HCP:</span><input type="number" step="0.1" min="0" max="36" placeholder="e.g. 16.8" id="hcp-inp"/><button onclick="logHcp()">Log</button>`;
+hs.appendChild(hr); dashScroll.appendChild(hs);
+
+const hcpBox=document.createElement(‘div’); hcpBox.className=‘chart-box’;
+hcpBox.innerHTML=`<div class="chart-ttl">Handicap vs Target</div><div class="chart-wrap"><canvas id="hcp-chart"></canvas></div>`;
+dashScroll.appendChild(hcpBox);
+
+dashScroll.innerHTML+=`<div class="dash-sec">Scoring Trend</div>`;
+const scBox=document.createElement(‘div’); scBox.className=‘chart-box’;
+scBox.innerHTML=`<div class="chart-ttl">Score per Round</div><div class="chart-wrap"><canvas id="sc-chart"></canvas></div>`;
+dashScroll.appendChild(scBox);
+
+// Completion bars
+dashScroll.innerHTML+=`<div class="dash-sec">Session Completion</div>`;
+const compBox=document.createElement(‘div’); compBox.className=‘chart-box’;
+const types=[‘gym’,‘golf’,‘driver’,‘rest’,‘round’];
+const tl={gym:‘Lift’,golf:‘Short Game’,driver:‘Driver/Range’,rest:‘Recovery’,round:‘Rounds’};
+let ts={}; types.forEach(t=>ts[t]={done:0,total:0});
+Object.keys(cache.weekSessions).forEach(key=>{
+const meta=cache.weekMeta[key]||{week_type:‘regular’};
+const wtype=meta.week_type||‘regular’;
+const sessions=cache.weekSessions[key]||{};
+DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
+if(s.unavailable||!ts[s.type]) return;
+ts[s.type].total++;
+if(sessions[s.id]?.done) ts[s.type].done++;
+}));
+});
+let ch=’<div class="comp-bars">’;
+types.forEach(t=>{ const p=ts[t].total>0?Math.round(ts[t].done/ts[t].total*100):0;
+ch+=`<div class="comp-row"><div class="comp-lbl">${tl[t]}</div><div class="comp-track"><div class="comp-fill" style="width:${p}%;background:${TYPE_CLR[t]}"></div></div><div class="comp-pct">${p}%</div></div>`;
+}); ch+=’</div>’;
+compBox.innerHTML=`<div class="chart-ttl">Completion by Type</div>${ch}`;
+dashScroll.appendChild(compBox);
+
+// Muscle heatmap
+dashScroll.innerHTML+=`<div class="dash-sec">Muscle Group Frequency</div>`;
+const mBox=document.createElement(‘div’); mBox.className=‘chart-box’;
+mBox.innerHTML=`<div class="chart-ttl">Sessions Logged per Muscle Group</div><div class="muscle-heat-grid">${ MUSCLE_GROUPS.map(m=>{ const cnt=mCounts[m]; const pct=cnt/maxM; const col=pct>0.7?'var(--green)':pct>0.4?'var(--amber)':pct>0?'var(--blue)':'var(--text-dim)'; return `<div class="mh-cell"><div class="mh-name">${m}</div><div class="mh-count" style="color:${col}">${cnt}</div><div class="mh-sub">sessions</div></div>`; }).join('') }</div>`;
+dashScroll.appendChild(mBox);
+
+setTimeout(()=>{
+const hcpCtx=document.getElementById(‘hcp-chart’);
+if(hcpCtx){
+if(hcpChartInst){hcpChartInst.destroy();hcpChartInst=null;}
+const sp={x:new Date(‘2026-04-14’).getTime(),y:17.5};
+const gp={x:new Date(‘2026-08-14’).getTime(),y:14};
+const pts=[sp,…hcpLog.map(h=>({x:new Date(h.date).getTime(),y:h.val}))];
+hcpChartInst=new Chart(hcpCtx,{type:‘line’,data:{datasets:[
+{label:‘Your HCP’,data:pts,borderColor:’#d4962a’,backgroundColor:‘rgba(212,150,42,0.07)’,tension:0.3,pointBackgroundColor:’#d4962a’,pointRadius:4,fill:true},
+{label:‘Target’,data:[sp,gp],borderColor:‘rgba(109,187,90,0.35)’,borderDash:[5,5],pointRadius:0,tension:0},
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:’#7a7e6a’,font:{size:10}}}},scales:{
+x:{type:‘linear’,ticks:{color:’#3a3d2e’,font:{size:9},callback:v=>{const d=new Date(v);return d.toLocaleDateString(‘en-US’,{month:‘short’,day:‘numeric’});}},grid:{color:’#1e2019’}},
+y:{reverse:true,min:12,max:20,ticks:{color:’#3a3d2e’,font:{size:9}},grid:{color:’#1e2019’}},
+}}});
+}
+const scCtx=document.getElementById(‘sc-chart’);
+if(scCtx){
+if(scoresChartInst){scoresChartInst.destroy();scoresChartInst=null;}
+if(rounds.length>0){
+const labs=[…rounds].reverse().map(r=>r.date);
+const scrs=[…rounds].reverse().map(r=>r.totalScore);
+const prs=[…rounds].reverse().map(r=>r.totalPar);
+scoresChartInst=new Chart(scCtx,{type:‘line’,data:{labels:labs,datasets:[
+{label:‘Score’,data:scrs,borderColor:’#5b8fd4’,backgroundColor:‘rgba(91,143,212,0.07)’,tension:0.3,pointBackgroundColor:’#5b8fd4’,pointRadius:4,fill:true},
+{label:‘Par’,data:prs,borderColor:‘rgba(109,187,90,0.35)’,borderDash:[5,5],pointRadius:0},
+]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:’#7a7e6a’,font:{size:10}}}},scales:{
+x:{ticks:{color:’#3a3d2e’,font:{size:9}},grid:{color:’#1e2019’}},
+y:{ticks:{color:’#3a3d2e’,font:{size:9}},grid:{color:’#1e2019’}},
+}}});
+} else { scCtx.closest(’.chart-wrap’).innerHTML+=’<div class="no-data">No rounds yet.</div>’; }
+}
+},60);
+}
+
+async function logHcp(){
+const v=parseFloat(document.getElementById(‘hcp-inp’).value);
+if(isNaN(v)||v<0||v>36) return;
+showLoading(‘Saving…’);
+await insertHcp(v);
+hideLoading();
+renderDashboard();
+}
+
+// ═══════════════════════════════════════
+// WEAKNESSES
+// ═══════════════════════════════════════
+async function renderWeaknesses(){
+const c=document.getElementById(‘weak-body’);
+c.innerHTML=’<div class="no-data" style="padding-top:30px">Loading…</div>’;
+const rounds=await loadRounds();
+c.innerHTML=’’;
+
+if(rounds.length<2){
+c.innerHTML=`<div class="no-rounds-msg"><h3>Not Enough Data Yet</h3><p>Log at least 2 rounds to see your weakness analysis.</p></div>`;
+return;
+}
+
+const statVals={putts:[],gir:[],fairways:[],updown:[],penalty:[]};
+rounds.forEach(r=>{
+if(r.stats){ Object.entries(r.stats).forEach(([k,v])=>{ if(statVals[k]) statVals[k].push(parseFloat(v)); }); }
+else if(r.focusStat&&r.statVal&&statVals[r.focusStat]) statVals[r.focusStat].push(parseFloat(r.statVal));
+});
+
+const avg=arr=>arr.length>0?+(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
+const items=[];
+
+const pAvg=avg(statVals.putts);
+if(pAvg!==null){ const sev=Math.min(100,Math.max(0,((pAvg-28)/12)*100));
+items.push({stat:‘Putting’,value:pAvg+’ putts/round’,desc:`Averaging ${pAvg} putts per round. A 14 HCP typically averages 32–34. Your Mon/Fri sessions target this directly.`,target:‘Goal: ≤33 putts per round’,severity:sev,color:’#9b7dd4’}); }
+
+const gAvg=avg(statVals.gir);
+if(gAvg!==null){ const sev=Math.min(100,Math.max(0,((9-gAvg)/9)*100));
+items.push({stat:‘Greens in Regulation’,value:gAvg+’ GIR/round’,desc:`Hitting ${gAvg} greens per round. A 14 HCP typically hits 5–7 GIR. More GIR = more par/birdie chances.`,target:‘Goal: 6+ GIR per round’,severity:sev,color:’#5b8fd4’}); }
+
+const fAvg=avg(statVals.fairways);
+if(fAvg!==null){ const sev=Math.min(100,Math.max(0,((10-fAvg)/10)*100));
+items.push({stat:‘Fairways Hit’,value:fAvg+’ fairways/round’,desc:`Hitting ${fAvg} fairways per round. Your Wed/Thu driver work directly targets this.`,target:‘Goal: 7+ fairways per round’,severity:sev,color:’#d4962a’}); }
+
+const uAvg=avg(statVals.updown);
+if(uAvg!==null){ const sev=Math.min(100,Math.max(0,((50-uAvg)/50)*100));
+items.push({stat:‘Up-&-Down %’,value:uAvg+’%’,desc:`Converting ${uAvg}% of up-&-down attempts. A 14 HCP converts 30–40%. Your Monday chipping work targets this.`,target:‘Goal: 35%+ conversion’,severity:sev,color:’#4ab8a8’}); }
+
+const penAvg=avg(statVals.penalty);
+if(penAvg!==null){ const sev=Math.min(100,Math.max(0,(penAvg/4)*100));
+items.push({stat:‘Penalty Strokes’,value:penAvg+’ per round’,desc:`Averaging ${penAvg} penalty strokes. Straighter driving and course management reduce this.`,target:‘Goal: <1 penalty per round’,severity:sev,color:’#d45b5b’}); }
+
+if(!items.length){
+c.innerHTML=’<div class="no-rounds-msg"><h3>Keep Logging Stats</h3><p>Add putts, GIR, fairways, or up-&-down data when logging rounds to see your breakdown.</p></div>’;
+return;
+}
+
+items.sort((a,b)=>b.severity-a.severity);
+const rankCls=[‘r1’,‘r2’,‘r3’,‘r4’,‘r5’];
+
+const hdr=document.createElement(‘div’); hdr.style.cssText=‘padding:14px 0 10px;’;
+hdr.innerHTML=`<div class="dash-sec" style="margin:0 0 4px">Your Biggest Weaknesses</div> <div style="font-size:0.72rem;color:var(--text-dim);line-height:1.6">Based on ${rounds.length} rounds. Fix in order — #1 is where strokes are bleeding most.</div>`;
+c.appendChild(hdr);
+
+items.forEach((item,i)=>{
+const card=document.createElement(‘div’); card.className=‘weak-card’;
+card.innerHTML=` <div class="weak-rank ${rankCls[i]||'r5'}">${i+1}</div> <div class="weak-body"> <div class="weak-title">${item.stat}</div> <div class="weak-stat" style="color:${item.color}">${item.value}</div> <div class="weak-desc">${item.desc}</div> <div class="weak-target">${item.target}</div> <div class="weak-bar-track"><div class="weak-bar-fill" style="width:${item.severity}%;background:${item.color}"></div></div> </div>`;
+c.appendChild(card);
+});
+
+const note=document.createElement(‘div’);
+note.style.cssText=‘font-size:0.7rem;color:var(–text-dim);text-align:center;padding:10px 0 4px;line-height:1.6;’;
+note.textContent=‘Rankings update as you log more rounds. Log 5+ for reliable data.’;
+c.appendChild(note);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+renderWeekView();
+renderRoundsView();
+</script>
+
+</body>
+</html>
