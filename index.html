@@ -879,7 +879,8 @@ function renderDashboard(){
   const rounds=data.rounds||[];
   const hcpLog=data.hcpLog||[];
   const totalR=rounds.length;
-  const avgScore=totalR>0?Math.round(rounds.reduce((a,r)=>a+(r.totalScore||0),0)/totalR):null;
+  const rounds18=rounds.filter(r=>r.holes===18&&r.totalScore);
+  const avgScore=rounds18.length>0?Math.round(rounds18.reduce((a,r)=>a+r.totalScore,0)/rounds18.length):null;
   const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:17.5;
   const drop=+(17.5-latestHcp).toFixed(1);
   const wksLeft=Math.max(0,Math.ceil((new Date('2026-08-14')-new Date())/604800000));
@@ -913,7 +914,7 @@ function renderDashboard(){
     <div class="kpi"><div class="kpi-lbl">Current HCP</div><div class="kpi-val av">${latestHcp}</div><div class="kpi-sub">Target: 14.0</div></div>
     <div class="kpi"><div class="kpi-lbl">HCP Drop</div><div class="kpi-val ${drop>0?'gv':''}">${drop>0?'−'+drop:drop}</div><div class="kpi-sub">Need −3.5 total</div></div>
     <div class="kpi"><div class="kpi-lbl">Rounds Played</div><div class="kpi-val">${totalR}</div><div class="kpi-sub">All logged rounds</div></div>
-    <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${totalR>0?'per round':'no data'}</div></div>
+    <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${rounds18.length>0?'18-hole rounds only':'no 18-hole rounds'}</div></div>
     <div class="kpi"><div class="kpi-lbl">Sessions Done</div><div class="kpi-val ${compPct>=80?'gv':''}">${compPct}%</div><div class="kpi-sub">${doneS} of ${totalS}</div></div>
     <div class="kpi"><div class="kpi-lbl">Weeks Left</div><div class="kpi-val av">${wksLeft}</div><div class="kpi-sub">Until Aug 14</div></div>
   `;
