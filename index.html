@@ -935,25 +935,27 @@ function renderDashboard(){
   scBox.innerHTML=`<div class="chart-ttl">Score per Round</div><div class="chart-wrap"><canvas id="sc-chart"></canvas></div>`;
   dash.appendChild(scBox);
 
-  // Completion
-  dash.innerHTML+=`<div class="dash-sec">Session Completion</div>`;
+  // Sessions done by type — raw count, bar relative to highest
+  dash.innerHTML+=`<div class="dash-sec">Sessions Done by Type</div>`;
   const compBox=document.createElement('div'); compBox.className='chart-box';
-  const types=['gym','golf','driver','rest','round'];
-  const tl={gym:'Lift',golf:'Short Game',driver:'Driver/Range',rest:'Recovery',round:'Rounds'};
-  let ts={}; types.forEach(t=>ts[t]={done:0,total:0});
+  const types=['gym','golf','driver','round','rest'];
+  const tl={gym:'Lift',golf:'Short Game',driver:'Driver/Range',round:'Rounds',rest:'Recovery'};
+  let ts={}; types.forEach(t=>ts[t]=0);
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
     const wd=data[k]; const wtype=wd.type||'regular';
     DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
-      if(s.unavailable||!ts[s.type]) return;
-      ts[s.type].total++;
-      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type].done++;
+      if(s.unavailable||!ts.hasOwnProperty(s.type)) return;
+      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type]++;
     }));
   });
+  const maxCount=Math.max(1,...Object.values(ts));
   let ch='<div class="comp-bars">';
-  types.forEach(t=>{ const p=ts[t].total>0?Math.round(ts[t].done/ts[t].total*100):0;
-    ch+=`<div class="comp-row"><div class="comp-lbl">${tl[t]}</div><div class="comp-track"><div class="comp-fill" style="width:${p}%;background:${TYPE_CLR[t]}"></div></div><div class="comp-pct">${p}%</div></div>`;
+  types.forEach(t=>{
+    const count=ts[t];
+    const barW=Math.round(count/maxCount*100);
+    ch+=`<div class="comp-row"><div class="comp-lbl">${tl[t]}</div><div class="comp-track"><div class="comp-fill" style="width:${barW}%;background:${TYPE_CLR[t]}"></div></div><div class="comp-pct">${count}</div></div>`;
   }); ch+='</div>';
-  compBox.innerHTML=`<div class="chart-ttl">Completion by Type</div>${ch}`;
+  compBox.innerHTML=`<div class="chart-ttl">Total Sessions Completed (all time)</div>${ch}`;
   dash.appendChild(compBox);
 
   // Muscle heatmap
