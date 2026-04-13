@@ -65,6 +65,11 @@ body{background:var(--bg);font-family:'Karla',sans-serif;color:var(--text);displ
 .wt-btn.blue{border-color:rgba(91,143,212,0.3);}
 .wt-btn.blue.active{border-color:var(--blue);color:var(--blue);background:var(--blue-pale);}
 
+/* ── TODAY HIGHLIGHT ── */
+.day-section.today .day-lbl{color:var(--green);}
+.day-section.today .day-hdr::before{content:'TODAY';font-family:'Barlow Condensed',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:1.5px;background:var(--green);color:#0e0f0d;padding:2px 6px;border-radius:3px;margin-right:4px;}
+.day-section.today .day-line{background:var(--green-dim);}
+
 /* ── DAY SECTION ── */
 .day-section{margin-bottom:8px;}
 .day-hdr{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
@@ -446,7 +451,7 @@ const ORIGIN = new Date('2026-04-14');
 const PARS18 = [4,4,3,4,5,3,4,5,4,4,3,4,5,4,3,4,5,4];
 const PARS9  = [4,4,3,4,5,3,4,5,4];
 const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',driver:'#d4962a',round:'#9b7dd4',rest:'#606870'};
-const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio'];
+const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio','Mobility'];
 
 // Default sessions per week type
 const DEFAULT_SESSIONS = {
@@ -631,8 +636,11 @@ function renderWeekView(){
   const container=document.getElementById('week-body');
   container.innerHTML='';
 
+  const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayName=DAYS[new Date().getDay()];
+
   template.forEach(dayObj=>{
-    const sec=document.createElement('div'); sec.className='day-section';
+    const sec=document.createElement('div'); sec.className='day-section'+(dayObj.day===todayName?' today':'');
     const allDone=dayObj.sessions.filter(s=>!s.unavailable).every(s=>wd.sessions[s.id]?.done);
     sec.innerHTML=`<div class="day-hdr"><div class="day-lbl">${dayObj.day}</div><div class="day-line"></div>${allDone&&dayObj.sessions.some(s=>!s.unavailable)?'<div class="day-done-badge">✓ Done</div>':''}</div>`;
 
@@ -667,7 +675,7 @@ function renderWeekView(){
       const card=document.createElement('div');
       card.className='scard'+(sd.done?' done':'')+(sd.skipped?' skipped':'');
 
-      const muscleHtml = type==='gym' ? buildMuscleHtml(s.id,sd.muscles||[]) : '';
+      const muscleHtml=(type==='gym'||type==='rest')?buildMuscleHtml(s.id,sd.muscles||[],type):'';
 
       card.innerHTML=`
         <div class="scard-top">
@@ -704,9 +712,10 @@ function renderWeekView(){
   document.getElementById('prog-fill').style.width=pct+'%';
 }
 
-function buildMuscleHtml(sid, checked){
-  return `<div class="det-label">Muscle Groups / Focus</div>
-  <div class="muscle-grid">${MUSCLE_GROUPS.map(m=>`
+function buildMuscleHtml(sid, checked, type){
+  const t = type||'gym'; const groups = t==='rest' ? ['Mobility'] : MUSCLE_GROUPS.filter(m=>m!=='Mobility');
+  return `<div class="det-label">${t==='rest'?'Mobility Logged':'Muscle Groups / Focus'}</div>
+  <div class="muscle-grid">${groups.map(m=>`
     <div class="mg-check ${checked.includes(m)?'checked':''}" onclick="toggleMuscle('${sid}','${m}',this)">
       <span class="mg-label">${m}</span>
     </div>`).join('')}
@@ -805,14 +814,11 @@ function resetSessionEdit(){
 // ═══════════════════════════════════════
 const STAT_OPTIONS=[
   {value:'putts',label:'Putts'},
+  {value:'three_putts',label:'3-Putts'},
   {value:'gir',label:'Greens in Regulation'},
   {value:'fairways',label:'Fairways Hit'},
   {value:'updown',label:'Up-&-Down %'},
   {value:'penalty',label:'Penalty Strokes'},
-  {value:'birdies',label:'Birdies'},
-  {value:'pars',label:'Pars'},
-  {value:'bogeys',label:'Bogeys'},
-  {value:'doubles',label:'Doubles or Worse'},
 ];
 
 function openRoundModal(){
@@ -926,7 +932,7 @@ function viewRound(idx){
   const data=load(), r=data.rounds[idx];
   const d=(r.totalScore&&r.totalPar)?r.totalScore-r.totalPar:null;
   const ds=d===null?'—':d===0?'E':(d>0?'+'+d:''+d);
-  const statLabels={putts:'Putts',gir:'GIR',fairways:'Fairways Hit',updown:'Up-&-Down %',penalty:'Penalties',birdies:'Birdies',pars:'Pars',bogeys:'Bogeys',doubles:'Doubles or Worse'};
+  const statLabels={putts:'Putts',three_putts:'3-Putts',gir:'GIR',fairways:'Fairways Hit',updown:'Up-&-Down %',penalty:'Penalties'};
   document.getElementById('rv-title').textContent=r.course;
   const statsHtml=Object.entries(r.stats||{}).map(([k,v])=>`
     <div class="sc-tot"><div class="sc-tot-lbl">${statLabels[k]||k}</div><div class="sc-tot-val av">${v}</div></div>
@@ -958,6 +964,8 @@ function renderDashboard(){
   const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:18;
   const drop=+(18-latestHcp).toFixed(1);
   const wksLeft=Math.max(0,Math.ceil((new Date('2026-08-14')-new Date())/604800000));
+  const rounds18best=rounds.filter(r=>r.holes===18&&r.totalScore);
+  const bestRound=rounds18best.length>0?Math.min(...rounds18best.map(r=>r.totalScore)):null;
 
   let totalS=0,doneS=0;
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
@@ -999,7 +1007,8 @@ function renderDashboard(){
     <div class="kpi"><div class="kpi-lbl">Rounds Played</div><div class="kpi-val">${totalR}</div><div class="kpi-sub">All logged rounds</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${rounds18.length>0?'18-hole rounds only':'no 18-hole rounds'}</div></div>
     <div class="kpi"><div class="kpi-lbl">Sessions Done</div><div class="kpi-val ${compPct>=80?'gv':''}">${compPct}%</div><div class="kpi-sub">${doneS} of ${totalS}</div></div>
-    <div class="kpi"><div class="kpi-lbl">Weeks Left</div><div class="kpi-val av">${wksLeft}</div><div class="kpi-sub">Until Aug 14</div></div>
+    <div class="kpi"><div class="kpi-lbl">Best Round</div><div class="kpi-val ${bestRound?'gv':''}">
+      ${bestRound||'—'}</div><div class="kpi-sub">${bestRound?'best 18-hole score':'no 18-hole rounds'}</div></div>
   `;
   dash.appendChild(kg);
 
@@ -1117,7 +1126,7 @@ function renderWeaknesses(){
   }
 
   // Aggregate stats — skill-based only (scoring avg excluded: symptom, not cause)
-  const statVals={putts:[],gir:[],fairways:[],updown:[],penalty:[],birdies:[],pars:[],bogeys:[],doubles:[]};
+  const statVals={putts:[],three_putts:[],gir:[],fairways:[],updown:[],penalty:[]};
   rounds.forEach(r=>{
     const multiplier = (r.holes===9) ? 2 : 1; // normalize 9-hole stats to 18-hole equivalent
     if(r.stats){ Object.entries(r.stats).forEach(([k,v])=>{
@@ -1152,6 +1161,10 @@ function renderWeaknesses(){
   }
 
   // GIR
+  const tpAvg=avg(statVals.three_putts);
+  if(tpAvg!==null){ const sev=Math.min(100,Math.max(0,(tpAvg/6)*100));
+    items.push({stat:'3-Putts',value:tpAvg+' per round',desc:`Averaging ${tpAvg} three-putts per round (18-hole equivalent). Each 3-putt is a direct stroke wasted on the green. A 14 HCP averages 1–2 per round.`,target:'Goal: ≤1 three-putt per round',severity:sev,color:'#d45b5b'}); }
+
   const gAvg=avg(statVals.gir);
   if(gAvg!==null){
     const invSev=Math.min(100,Math.max(0,((9-gAvg)/9)*100));
