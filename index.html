@@ -810,7 +810,9 @@ const STAT_OPTIONS=[
   {value:'updown',label:'Up-&-Down %'},
   {value:'penalty',label:'Penalty Strokes'},
   {value:'birdies',label:'Birdies'},
+  {value:'pars',label:'Pars'},
   {value:'bogeys',label:'Bogeys'},
+  {value:'doubles',label:'Doubles or Worse'},
 ];
 
 function openRoundModal(){
@@ -924,7 +926,7 @@ function viewRound(idx){
   const data=load(), r=data.rounds[idx];
   const d=(r.totalScore&&r.totalPar)?r.totalScore-r.totalPar:null;
   const ds=d===null?'—':d===0?'E':(d>0?'+'+d:''+d);
-  const statLabels={putts:'Putts',gir:'GIR',fairways:'Fairways Hit',updown:'Up-&-Down %',penalty:'Penalties',birdies:'Birdies',bogeys:'Bogeys'};
+  const statLabels={putts:'Putts',gir:'GIR',fairways:'Fairways Hit',updown:'Up-&-Down %',penalty:'Penalties',birdies:'Birdies',pars:'Pars',bogeys:'Bogeys',doubles:'Doubles or Worse'};
   document.getElementById('rv-title').textContent=r.course;
   const statsHtml=Object.entries(r.stats||{}).map(([k,v])=>`
     <div class="sc-tot"><div class="sc-tot-lbl">${statLabels[k]||k}</div><div class="sc-tot-val av">${v}</div></div>
@@ -1078,13 +1080,12 @@ function renderDashboard(){
     const scCtx=document.getElementById('sc-chart');
     if(scCtx){
       if(scoresChartInst){ scoresChartInst.destroy(); scoresChartInst=null; }
-      if(rounds.length>0){
-        const labs=[...rounds].reverse().map(r=>r.date);
-        const scrs=[...rounds].reverse().map(r=>r.totalScore);
-        const prs=[...rounds].reverse().map(r=>r.totalPar);
+      const rounds18chart=[...rounds].filter(r=>r.holes===18).reverse();
+      if(rounds18chart.length>0){
+        const labs=rounds18chart.map(r=>r.date);
+        const scrs=rounds18chart.map(r=>r.totalScore);
         scoresChartInst=new Chart(scCtx,{type:'line',data:{labels:labs,datasets:[
           {label:'Score',data:scrs,borderColor:'#5b8fd4',backgroundColor:'rgba(91,143,212,0.07)',tension:0.3,pointBackgroundColor:'#5b8fd4',pointRadius:4,fill:true},
-          {label:'Par',data:prs,borderColor:'rgba(109,187,90,0.35)',borderDash:[5,5],pointRadius:0},
         ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#7a7e6a',font:{size:10}}}},scales:{
           x:{ticks:{color:'#3a3d2e',font:{size:9}},grid:{color:'#1e2019'}},
           y:{ticks:{color:'#3a3d2e',font:{size:9}},grid:{color:'#1e2019'}},
@@ -1116,10 +1117,20 @@ function renderWeaknesses(){
   }
 
   // Aggregate stats — skill-based only (scoring avg excluded: symptom, not cause)
-  const statVals={putts:[],gir:[],fairways:[],updown:[],penalty:[]};
+  const statVals={putts:[],gir:[],fairways:[],updown:[],penalty:[],birdies:[],pars:[],bogeys:[],doubles:[]};
   rounds.forEach(r=>{
-    if(r.stats){ Object.entries(r.stats).forEach(([k,v])=>{ if(statVals[k]) statVals[k].push(parseFloat(v)); }); }
-    else if(r.focusStat&&r.statVal&&statVals[r.focusStat]) statVals[r.focusStat].push(parseFloat(r.statVal));
+    const multiplier = (r.holes===9) ? 2 : 1; // normalize 9-hole stats to 18-hole equivalent
+    if(r.stats){ Object.entries(r.stats).forEach(([k,v])=>{
+      if(statVals[k]!==undefined){
+        // updown % doesn't scale linearly, keep as-is
+        const val = (k==='updown') ? parseFloat(v) : parseFloat(v) * multiplier;
+        statVals[k].push(val);
+      }
+    }); }
+    else if(r.focusStat&&r.statVal&&statVals[r.focusStat]!==undefined){
+      const val = (r.focusStat==='updown') ? parseFloat(r.statVal) : parseFloat(r.statVal) * multiplier;
+      statVals[r.focusStat].push(val);
+    }
   });
 
   const avg=arr=>arr.length>0?+(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
