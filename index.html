@@ -228,6 +228,14 @@ canvas{display:block;}
 .backup-btn.import{border-color:rgba(91,143,212,0.4);color:var(--blue);}
 .backup-lbl{font-size:0.62rem;color:var(--text-dim);letter-spacing:0.5px;margin-left:auto;}
 
+
+/* ── ADD/REMOVE SESSION ── */
+.add-session-btn{margin:0 0 0 auto;padding:4px 12px;font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px dashed var(--green-dim);border-radius:5px;color:var(--green);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.add-session-btn:hover{background:var(--green-pale);}
+.remove-btn{margin-top:7px;margin-left:6px;background:transparent;border:1px solid var(--border2);color:var(--text-dim);padding:3px 9px;border-radius:4px;font-size:0.65rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
+.remove-btn:hover{border-color:var(--red);color:var(--red);}
+.skip-remove-row{display:flex;align-items:center;gap:0;margin-top:7px;}
+
 /* ── FLEX BADGE ── */
 .flex-badge{display:inline-block;background:var(--amber);color:#1a1000;font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:2px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;position:relative;top:-1px;}
 </style>
@@ -274,6 +282,7 @@ canvas{display:block;}
     <button class="wt-btn active" onclick="setWeekType('regular',this)">Regular</button>
     <button class="wt-btn amber" onclick="setWeekType('thu-travel',this)">Travel (Thu)</button>
     <button class="wt-btn blue" onclick="setWeekType('fri-travel',this)">Travel (Fri)</button>
+    <button class="add-session-btn" onclick="openAddSessionModal()">+ Add Session</button>
   </div>
   <div class="scroll" id="week-body"></div>
 </div>
@@ -340,6 +349,54 @@ canvas{display:block;}
   </div>
 </div>
 
+
+<!-- ══ ADD SESSION MODAL ══ -->
+<div class="overlay hidden" id="add-session-overlay">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <div class="modal-ttl">Add Session</div>
+      <button class="modal-close" onclick="closeModal('add-session-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrp" style="margin-bottom:9px">
+        <label class="flabel">Day</label>
+        <select class="finput" id="add-day">
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+          <option value="Saturday">Saturday</option>
+          <option value="Sunday">Sunday</option>
+        </select>
+      </div>
+      <div class="fgrp" style="margin-bottom:9px">
+        <label class="flabel">Session Title</label>
+        <input class="finput" id="add-title" placeholder="e.g. Evening Putting Mat"/>
+      </div>
+      <div class="fgrp" style="margin-bottom:9px">
+        <label class="flabel">Time Slot</label>
+        <input class="finput" id="add-time" placeholder="e.g. 8:00–9:00p"/>
+      </div>
+      <div class="fgrp" style="margin-bottom:9px">
+        <label class="flabel">Session Type</label>
+        <select class="finput" id="add-type">
+          <option value="gym">Lift / Gym</option>
+          <option value="golf">Short Game</option>
+          <option value="driver">Driver / Range</option>
+          <option value="round">Golf Round</option>
+          <option value="rest">Recovery / Mobility</option>
+        </select>
+      </div>
+      <div class="fgrp" style="margin-bottom:9px">
+        <label class="flabel">Focus / Details</label>
+        <textarea class="notes-ta" id="add-detail" placeholder="What's the plan for this session?" style="min-height:48px"></textarea>
+      </div>
+      <button class="save-btn" onclick="saveAddedSession()">Add Session</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ EDIT SESSION MODAL ══ -->
 <div class="overlay hidden edit-modal" id="edit-overlay">
   <div class="modal" style="max-width:400px">
@@ -356,9 +413,9 @@ canvas{display:block;}
       <div class="fgrp"><label class="flabel">Session Type</label>
         <select class="finput" id="edit-type">
           <option value="gym">Lift / Gym</option>
-          <option value="golf">Short Game / Golf</option>
+          <option value="golf">Short Game</option>
           <option value="driver">Driver / Range</option>
-          <option value="round">Full Round</option>
+          <option value="round">Golf Round</option>
           <option value="rest">Recovery / Mobility</option>
         </select>
       </div>
@@ -548,6 +605,8 @@ function renderWeekView(){
   const {data,key}=getWD(currentWeekOffset);
   const wd=data[key];
   const wtype=wd.type||'regular';
+  const removedSessions=wd.removedSessions||[];
+  const addedSessions=wd.addedSessions||[];
 
   document.getElementById('wk-title').textContent=`Week ${currentWeekOffset+1}`;
   document.getElementById('wk-dates').textContent=getWeekDates(currentWeekOffset);
@@ -558,7 +617,15 @@ function renderWeekView(){
   const typeIdx={regular:0,'thu-travel':1,'fri-travel':2};
   if(btns[typeIdx[wtype]]) btns[typeIdx[wtype]].classList.add('active');
 
-  const template = DEFAULT_SESSIONS[wtype];
+  // Merge added sessions into template by day
+  const template = DEFAULT_SESSIONS[wtype].map(dayObj=>({
+    ...dayObj,
+    sessions:[
+      ...dayObj.sessions,
+      ...addedSessions.filter(a=>a.day===dayObj.day).map(a=>({...a,isAdded:true}))
+    ]
+  }));
+
   let total=0, done=0;
   const container=document.getElementById('week-body');
   container.innerHTML='';
@@ -576,6 +643,7 @@ function renderWeekView(){
     }
 
     dayObj.sessions.forEach(s=>{
+      if(removedSessions.includes(s.id)) return;
       if(s.unavailable){
         const card=document.createElement('div');
         card.className='scard skipped';
@@ -618,7 +686,10 @@ function renderWeekView(){
           ${muscleHtml}
           <div class="det-label">Session Notes</div>
           <textarea class="notes-ta" placeholder="What did you work on? How did it feel?" onchange="saveNotes('${s.id}',this.value)">${sd.notes||''}</textarea>
-          <button class="skip-btn ${sd.skipped?'active':''}" onclick="toggleSkip('${s.id}')">${sd.skipped?'Unskip':'Mark Skipped'}</button>
+          <div class="skip-remove-row">
+            <button class="skip-btn ${sd.skipped?'active':''}" onclick="toggleSkip('${s.id}')">${sd.skipped?'Unskip':'Mark Skipped'}</button>
+            <button class="remove-btn" onclick="removeSession('${s.id}','${s.isAdded?true:false}')">${s.isAdded?'✕ Delete':'✕ Remove'}</button>
+          </div>
         </div>
       `;
       sec.appendChild(card);
@@ -1141,6 +1212,58 @@ function renderWeaknesses(){
   note.style.cssText='font-size:0.7rem;color:var(--text-dim);text-align:center;padding:10px 0 4px;line-height:1.6;';
   note.textContent='Weakness rankings update automatically as you log more rounds. Log at least 5 rounds for reliable data.';
   c.appendChild(note);
+}
+
+// ═══════════════════════════════════════
+// ADD / REMOVE SESSIONS
+// ═══════════════════════════════════════
+function openAddSessionModal(){
+  document.getElementById('add-title').value='';
+  document.getElementById('add-time').value='';
+  document.getElementById('add-detail').value='';
+  document.getElementById('add-type').value='golf';
+  document.getElementById('add-session-overlay').classList.remove('hidden');
+}
+
+function saveAddedSession(){
+  const day=document.getElementById('add-day').value;
+  const title=document.getElementById('add-title').value.trim();
+  const time=document.getElementById('add-time').value.trim();
+  const type=document.getElementById('add-type').value;
+  const detail=document.getElementById('add-detail').value.trim();
+  if(!title){ alert('Please enter a session title.'); return; }
+
+  const data=load();
+  const key=getWK(currentWeekOffset);
+  if(!data[key]) data[key]={type:'regular',sessions:{},customSessions:{},addedSessions:[]};
+  if(!data[key].addedSessions) data[key].addedSessions=[];
+
+  const sid='custom_'+Date.now();
+  data[key].addedSessions.push({id:sid,day,title,time,type,detail});
+  save(data);
+  closeModal('add-session-overlay');
+  renderWeekView();
+}
+
+function removeSession(sid, isAdded){
+  const data=load();
+  const key=getWK(currentWeekOffset);
+  if(!data[key]) data[key]={type:'regular',sessions:{},customSessions:{},addedSessions:[]};
+  if(isAdded==='true'||isAdded===true){
+    // Permanently delete added session
+    data[key].addedSessions=(data[key].addedSessions||[]).filter(s=>s.id!==sid);
+    if(data[key].sessions[sid]) delete data[key].sessions[sid];
+  } else {
+    if(!data[key].removedSessions) data[key].removedSessions=[];
+    if(data[key].removedSessions.includes(sid)){
+      data[key].removedSessions=data[key].removedSessions.filter(id=>id!==sid);
+    } else {
+      data[key].removedSessions.push(sid);
+      if(data[key].sessions[sid]) delete data[key].sessions[sid];
+    }
+  }
+  save(data);
+  renderWeekView();
 }
 
 // ═══════════════════════════════════════
