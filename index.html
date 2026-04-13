@@ -959,10 +959,19 @@ function renderDashboard(){
   let totalS=0,doneS=0;
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
     const wd=data[k]; const wtype=wd.type||'regular';
+    const removed=wd.removedSessions||[];
+    const added=wd.addedSessions||[];
     DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
-      if(s.unavailable) return; totalS++;
+      if(s.unavailable) return;
+      if(removed.includes(s.id)) return; // skip removed sessions
+      totalS++;
       if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) doneS++;
     }));
+    // Include added sessions
+    added.forEach(s=>{
+      totalS++;
+      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) doneS++;
+    });
   });
   const compPct=totalS>0?Math.round(doneS/totalS*100):0;
 
@@ -1015,10 +1024,17 @@ function renderDashboard(){
   let ts={}; types.forEach(t=>ts[t]=0);
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
     const wd=data[k]; const wtype=wd.type||'regular';
+    const removed=wd.removedSessions||[];
+    const added=wd.addedSessions||[];
     DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
       if(s.unavailable||!ts.hasOwnProperty(s.type)) return;
+      if(removed.includes(s.id)) return;
       if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type]++;
     }));
+    added.forEach(s=>{
+      if(!ts.hasOwnProperty(s.type)) return;
+      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type]++;
+    });
   });
   const maxCount=Math.max(1,...Object.values(ts));
   let ch='<div class="comp-bars">';
