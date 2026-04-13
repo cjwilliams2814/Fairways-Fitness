@@ -881,8 +881,8 @@ function renderDashboard(){
   const totalR=rounds.length;
   const rounds18=rounds.filter(r=>r.holes===18&&r.totalScore);
   const avgScore=rounds18.length>0?Math.round(rounds18.reduce((a,r)=>a+r.totalScore,0)/rounds18.length):null;
-  const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:17.5;
-  const drop=+(17.5-latestHcp).toFixed(1);
+  const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:18;
+  const drop=+(18-latestHcp).toFixed(1);
   const wksLeft=Math.max(0,Math.ceil((new Date('2026-08-14')-new Date())/604800000));
 
   let totalS=0,doneS=0;
@@ -912,7 +912,7 @@ function renderDashboard(){
   const kg=document.createElement('div'); kg.className='kpi-grid';
   kg.innerHTML=`
     <div class="kpi"><div class="kpi-lbl">Current HCP</div><div class="kpi-val av">${latestHcp}</div><div class="kpi-sub">Target: 14.0</div></div>
-    <div class="kpi"><div class="kpi-lbl">HCP Drop</div><div class="kpi-val ${drop>0?'gv':''}">${drop>0?'−'+drop:drop}</div><div class="kpi-sub">Need −3.5 total</div></div>
+    <div class="kpi"><div class="kpi-lbl">HCP Drop</div><div class="kpi-val ${drop>0?'gv':''}">${drop>0?'−'+drop:drop}</div><div class="kpi-sub">Need −4 total</div></div>
     <div class="kpi"><div class="kpi-lbl">Rounds Played</div><div class="kpi-val">${totalR}</div><div class="kpi-sub">All logged rounds</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${rounds18.length>0?'18-hole rounds only':'no 18-hole rounds'}</div></div>
     <div class="kpi"><div class="kpi-lbl">Sessions Done</div><div class="kpi-val ${compPct>=80?'gv':''}">${compPct}%</div><div class="kpi-sub">${doneS} of ${totalS}</div></div>
@@ -976,7 +976,7 @@ function renderDashboard(){
     const hcpCtx=document.getElementById('hcp-chart');
     if(hcpCtx){
       if(hcpChartInst){ hcpChartInst.destroy(); hcpChartInst=null; }
-      const sp={x:new Date('2026-04-14').getTime(),y:17.5};
+      const sp={x:new Date('2026-04-14').getTime(),y:18};
       const gp={x:new Date('2026-08-14').getTime(),y:14};
       const pts=[sp,...hcpLog.map(h=>({x:new Date(h.date).getTime(),y:h.val}))];
       hcpChartInst=new Chart(hcpCtx,{type:'line',data:{datasets:[
