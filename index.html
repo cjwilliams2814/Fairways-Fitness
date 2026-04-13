@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#0e0f0d">
 <link rel="apple-touch-icon" href="https://static.vecteezy.com/system/resources/previews/036/365/658/non_2x/golf-club-logo-design-inspiration-simple-modern-minimalist-logo-vector.jpg">
 <title>CJ Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Oxanium:wght@600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0e0f0d;--surface:#161814;--surface2:#1e2019;--surface3:#252820;
@@ -31,7 +31,7 @@ body{background:var(--bg);font-family:'Karla',sans-serif;color:var(--text);displ
 .topbar{display:flex;flex-direction:column;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;padding-top:env(safe-area-inset-top);}
 .topbar-row1{display:flex;align-items:center;justify-content:space-between;padding:8px 16px 6px;gap:8px;}
 .topbar-row2{display:flex;align-items:center;padding:0 12px 8px;gap:4px;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-size:0.95rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--white);white-space:nowrap;flex-shrink:0;}
+.logo{font-family:'Oxanium',sans-serif;font-size:0.82rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--white);white-space:nowrap;flex-shrink:0;}
 .logo em{color:var(--green);font-style:normal;}
 .nav-tabs{display:flex;gap:4px;flex:1;}
 .nav-tab{flex:1;padding:5px 6px;font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:transparent;border:1px solid transparent;border-radius:5px;color:var(--text-mid);cursor:pointer;transition:all .15s;white-space:nowrap;text-align:center;}
@@ -56,9 +56,9 @@ body{background:var(--bg);font-family:'Karla',sans-serif;color:var(--text);displ
 .prog-fill{height:100%;background:var(--green);transition:width .3s;}
 
 /* ── WEEK TYPE SELECTOR ── */
-.week-type-row{display:flex;align-items:center;gap:8px;padding:8px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
-.wt-label{font-size:0.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);}
-.wt-btn{padding:4px 12px;font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text-dim);cursor:pointer;transition:all .15s;}
+.week-type-row{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:nowrap;overflow-x:auto;}
+.wt-label{font-size:0.62rem;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-mid);white-space:nowrap;flex-shrink:0;}
+.wt-btn{padding:4px 9px;font-family:'Barlow Condensed',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text-dim);cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
 .wt-btn.active{border-color:var(--green-dim);color:var(--green);background:var(--green-pale);}
 .wt-btn.amber{border-color:rgba(212,150,42,0.4);}
 .wt-btn.amber.active{border-color:var(--amber);color:var(--amber);background:var(--amber-pale);}
@@ -236,7 +236,7 @@ canvas{display:block;}
 
 
 /* ── ADD/REMOVE SESSION ── */
-.add-session-btn{margin:0 0 0 auto;padding:4px 12px;font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px dashed var(--green-dim);border-radius:5px;color:var(--green);cursor:pointer;transition:all .15s;flex-shrink:0;}
+.add-session-btn{margin:0 0 0 auto;padding:4px 9px;font-family:'Barlow Condensed',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:transparent;border:1px dashed var(--green-dim);border-radius:5px;color:var(--green);cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;}
 .add-session-btn:hover{background:var(--green-pale);}
 .remove-btn{margin-top:7px;margin-left:6px;background:transparent;border:1px solid var(--border2);color:var(--text-dim);padding:3px 9px;border-radius:4px;font-size:0.65rem;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:all .15s;}
 .remove-btn:hover{border-color:var(--red);color:var(--red);}
@@ -250,7 +250,7 @@ canvas{display:block;}
 
 <div class="topbar">
   <div class="topbar-row1">
-    <div class="logo">CJ <em>Tracker</em></div>
+    <div class="logo" style="color:var(--white)">Fairways &amp; Fitness</div>
     <div class="deadline-pill">Aug 14 &mdash; <span id="wks-left">—</span> wks left</div>
   </div>
   <div class="topbar-row2">
