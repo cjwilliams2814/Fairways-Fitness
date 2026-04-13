@@ -1015,7 +1015,7 @@ function renderDashboard(){
   // HCP log
   const hs=document.createElement('div'); hs.innerHTML=`<div class="dash-sec">Handicap Tracker</div>`;
   const hr=document.createElement('div'); hr.className='hcp-row';
-  hr.innerHTML=`<span class="hcp-row-lbl">Log today's HCP:</span><input type="number" step="0.1" min="0" max="36" placeholder="e.g. 16.8" id="hcp-inp"/><button onclick="logHcp()">Log</button>`;
+  hr.innerHTML=`<span class="hcp-row-lbl">Log HCP:</span><input type="number" step="0.1" min="0" max="36" placeholder="e.g. 16.8" id="hcp-inp" style="width:80px"/><input type="date" id="hcp-date" style="background:var(--surface2);border:1px solid var(--border2);border-radius:5px;color:var(--text);padding:5px 7px;font-size:0.72rem;outline:none;width:130px"/><button onclick="logHcp()">Log</button>`;
   hs.appendChild(hr); dash.appendChild(hs);
 
   // Charts
@@ -1075,15 +1075,15 @@ function renderDashboard(){
     const hcpCtx=document.getElementById('hcp-chart');
     if(hcpCtx){
       if(hcpChartInst){ hcpChartInst.destroy(); hcpChartInst=null; }
-      const sp={x:new Date('2026-04-14').getTime(),y:18};
+      const sp={x:new Date('2026-04-01').getTime(),y:18};
       const gp={x:new Date('2026-08-14').getTime(),y:14};
-      const pts=[sp,...hcpLog.map(h=>({x:new Date(h.date).getTime(),y:h.val}))];
+      const pts=[sp,...hcpLog.map(h=>({x:new Date(h.date).getTime(),y:parseFloat(h.val)}))];
       hcpChartInst=new Chart(hcpCtx,{type:'line',data:{datasets:[
-        {label:'Your HCP',data:pts,borderColor:'#d4962a',backgroundColor:'rgba(212,150,42,0.07)',tension:0.3,pointBackgroundColor:'#d4962a',pointRadius:4,fill:true},
-        {label:'Target',data:[sp,gp],borderColor:'rgba(109,187,90,0.35)',borderDash:[5,5],pointRadius:0,tension:0},
+        {label:'Your HCP',data:pts,borderColor:'#d4962a',backgroundColor:'rgba(212,150,42,0.06)',tension:0.4,pointBackgroundColor:'#d4962a',pointBorderColor:'#d4962a',pointRadius:3,pointHoverRadius:5,fill:true},
+        {label:'Target',data:[sp,gp],borderColor:'rgba(109,187,90,0.45)',borderDash:[5,5],pointRadius:0,tension:0},
       ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#7a7e6a',font:{size:10}}}},scales:{
-        x:{type:'linear',ticks:{color:'#3a3d2e',font:{size:9},callback:v=>{const d=new Date(v);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}},grid:{color:'#1e2019'}},
-        y:{reverse:true,min:12,max:20,ticks:{color:'#3a3d2e',font:{size:9}},grid:{color:'#1e2019'}},
+        x:{type:'linear',min:new Date('2026-04-01').getTime(),max:gp.x,ticks:{color:'#3a3d2e',font:{size:9},callback:v=>{const d=new Date(v);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});}},grid:{color:'#1e2019'}},
+        y:{reverse:false,min:12,max:20,ticks:{color:'#3a3d2e',font:{size:9}},grid:{color:'#1e2019'}},
       }}});
     }
     const scCtx=document.getElementById('sc-chart');
@@ -1106,9 +1106,12 @@ function renderDashboard(){
 
 function logHcp(){
   const v=parseFloat(document.getElementById('hcp-inp').value);
+  const dateEl=document.getElementById('hcp-date');
+  const d=dateEl&&dateEl.value?dateEl.value:new Date().toISOString().slice(0,10);
   if(isNaN(v)||v<0||v>36) return;
   const data=load(); if(!data.hcpLog) data.hcpLog=[];
-  data.hcpLog.push({date:new Date().toISOString().slice(0,10),val:v});
+  data.hcpLog.push({date:d,val:v});
+  data.hcpLog.sort((a,b)=>new Date(a.date)-new Date(b.date));
   save(data); renderDashboard();
 }
 
