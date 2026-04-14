@@ -822,6 +822,7 @@ const STAT_OPTIONS=[
 ];
 
 function openRoundModal(){
+  editingRoundIdx=null;
   document.getElementById('sc-course').value='';
   document.getElementById('sc-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('sc-holes').value='18';
@@ -890,7 +891,14 @@ function saveRound(){
   };
   const data=load();
   if(!data.rounds) data.rounds=[];
-  data.rounds.unshift(round);
+  if(editingRoundIdx!==null){
+    data.rounds[editingRoundIdx]=round;
+    editingRoundIdx=null;
+  } else {
+    data.rounds.unshift(round);
+  }
+  // Sort rounds by date descending after save
+  data.rounds.sort((a,b)=>new Date(b.date)-new Date(a.date));
   save(data);
   closeModal('round-overlay');
   renderRoundsView();
@@ -916,6 +924,7 @@ function renderRoundsView(){
       <div style="flex:1"><div class="re-title">${r.course}</div>
       <div class="re-sub">${r.date} · ${r.holes} holes${statPreview}</div></div>
       <div style="text-align:right"><div class="re-score">${r.totalScore||'—'}</div><div class="re-par ${dc}">${ds}</div></div>
+      <button class="del-btn" style="opacity:1;color:var(--amber);font-size:0.75rem;" onclick="editRound(${idx},event)">✏️</button>
       <button class="del-btn" onclick="deleteRound(${idx},event)">✕</button>
     `;
     row.addEventListener('click',()=>viewRound(idx));
@@ -926,6 +935,41 @@ function renderRoundsView(){
 function deleteRound(idx,e){
   e.stopPropagation();
   const data=load(); data.rounds.splice(idx,1); save(data); renderRoundsView();
+}
+
+let editingRoundIdx = null;
+
+function editRound(idx,e){
+  e.stopPropagation();
+  const data=load(); const r=data.rounds[idx];
+  editingRoundIdx=idx;
+  document.getElementById('sc-course').value=r.course||'';
+  document.getElementById('sc-date').value=r.date||new Date().toISOString().slice(0,10);
+  document.getElementById('sc-holes').value=r.holes||18;
+  document.getElementById('sc-par').value=r.totalPar||(r.holes===9?36:72);
+  document.getElementById('sc-score').value=r.totalScore||'';
+  document.getElementById('sc-notes').value=r.notes||'';
+  updateScoreDiff();
+  // Repopulate stats
+  document.getElementById('stat-rows').innerHTML='';
+  if(r.stats&&Object.keys(r.stats).length>0){
+    Object.entries(r.stats).forEach(([k,v])=>{
+      const container=document.getElementById('stat-rows');
+      const row=document.createElement('div');
+      row.className='form-row'; row.style.marginBottom='6px';
+      row.innerHTML=`
+        <div class="fgrp">
+          <select class="finput stat-type">${STAT_OPTIONS.map(o=>`<option value="${o.value}" ${o.value===k?'selected':''}">${o.label}</option>`).join('')}</select>
+        </div>
+        <div class="fgrp" style="max-width:90px">
+          <input class="finput stat-val" type="number" placeholder="Value" min="0" value="${v}"/>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;padding:0 4px;font-size:1rem;flex-shrink:0;align-self:center;">✕</button>
+      `;
+      container.appendChild(row);
+    });
+  } else { addStatRow(); }
+  document.getElementById('round-overlay').classList.remove('hidden');
 }
 
 function viewRound(idx){
