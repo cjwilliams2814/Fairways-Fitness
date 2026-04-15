@@ -389,7 +389,8 @@ canvas{display:block;}
         <select class="finput" id="add-type">
           <option value="gym">Lift / Gym</option>
           <option value="golf">Short Game</option>
-          <option value="driver">Driver / Range</option>
+          <option value="irons">Irons</option>
+          <option value="driver">Driver</option>
           <option value="round">Golf Round</option>
           <option value="rest">Recovery / Mobility</option>
         </select>
@@ -420,7 +421,8 @@ canvas{display:block;}
         <select class="finput" id="edit-type">
           <option value="gym">Lift / Gym</option>
           <option value="golf">Short Game</option>
-          <option value="driver">Driver / Range</option>
+          <option value="irons">Irons</option>
+          <option value="driver">Driver</option>
           <option value="round">Golf Round</option>
           <option value="rest">Recovery / Mobility</option>
         </select>
@@ -450,7 +452,7 @@ canvas{display:block;}
 const ORIGIN = new Date('2026-04-14');
 const PARS18 = [4,4,3,4,5,3,4,5,4,4,3,4,5,4,3,4,5,4];
 const PARS9  = [4,4,3,4,5,3,4,5,4];
-const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',driver:'#d4962a',round:'#9b7dd4',rest:'#606870'};
+const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',irons:'#c4823a',driver:'#d4962a',round:'#9b7dd4',rest:'#606870'};
 const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio','Mobility'];
 
 // Default sessions per week type
@@ -462,7 +464,7 @@ const DEFAULT_SESSIONS = {
     ]},
     {day:'Tuesday',   sessions:[
       {id:'tue-pm', time:'5:15–6:30p',title:'Lower Body + Core',            type:'gym',    detail:'Squats, RDLs, leg press, Pallof press, planks.'},
-      {id:'tue-eve',time:'8:00–9:00p',title:'At-Home Mat — Iron Striking',  type:'golf',   detail:'Irons into net. Low point control & divot direction.'},
+      {id:'tue-eve',time:'8:00–9:00p',title:'At-Home Mat — Iron Striking',  type:'irons',  detail:'Irons into net. Low point control & divot direction.'},
     ]},
     {day:'Wednesday', sessions:[
       {id:'wed-pm', time:'5:15–6:30p',title:'Driving Range — Driver-Heavy', type:'driver', detail:'Lead with driver (15–20 reps), then mid-irons to wedge.',flex:true},
@@ -623,13 +625,24 @@ function renderWeekView(){
   const typeIdx={regular:0,'thu-travel':1,'fri-travel':2};
   if(btns[typeIdx[wtype]]) btns[typeIdx[wtype]].classList.add('active');
 
-  // Merge added sessions into template by day
+  // Helper to parse time slot into sortable number
+  function parseTime(t){
+    if(!t) return 9999;
+    const m=t.match(/(\d+):(\d+)\s*(a|p)/i);
+    if(!m) return 9999;
+    let h=parseInt(m[1]), min=parseInt(m[2]), ampm=m[3].toLowerCase();
+    if(ampm==='p'&&h!==12) h+=12;
+    if(ampm==='a'&&h===12) h=0;
+    return h*60+min;
+  }
+
+  // Merge added sessions into template by day, sorted by time
   const template = DEFAULT_SESSIONS[wtype].map(dayObj=>({
     ...dayObj,
     sessions:[
       ...dayObj.sessions,
       ...addedSessions.filter(a=>a.day===dayObj.day).map(a=>({...a,isAdded:true}))
-    ]
+    ].sort((a,b)=>parseTime(a.time)-parseTime(b.time))
   }));
 
   let total=0, done=0;
@@ -713,7 +726,7 @@ function renderWeekView(){
 }
 
 function buildMuscleHtml(sid, checked, type){
-  const t = type||'gym'; const groups = t==='rest' ? ['Mobility'] : MUSCLE_GROUPS.filter(m=>m!=='Mobility');
+  const t = type||'gym'; const groups = t==='rest' ? ['Mobility','Core','Cardio'] : MUSCLE_GROUPS.filter(m=>m!=='Mobility'&&m!=='Cardio');
   return `<div class="det-label">${t==='rest'?'Mobility Logged':'Muscle Groups / Focus'}</div>
   <div class="muscle-grid">${groups.map(m=>`
     <div class="mg-check ${checked.includes(m)?'checked':''}" onclick="toggleMuscle('${sid}','${m}',this)">
@@ -1075,8 +1088,8 @@ function renderDashboard(){
   // Sessions done by type — raw count, bar relative to highest
   dash.innerHTML+=`<div class="dash-sec">Sessions Done by Type</div>`;
   const compBox=document.createElement('div'); compBox.className='chart-box';
-  const types=['gym','golf','driver','round','rest'];
-  const tl={gym:'Lift',golf:'Short Game',driver:'Driver/Range',round:'Rounds',rest:'Recovery'};
+  const types=['gym','golf','irons','driver','round','rest'];
+  const tl={gym:'Lift',golf:'Short Game',irons:'Irons',driver:'Driver',round:'Rounds',rest:'Recovery'};
   let ts={}; types.forEach(t=>ts[t]=0);
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
     const wd=data[k]; const wtype=wd.type||'regular';
