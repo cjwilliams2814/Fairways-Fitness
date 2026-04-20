@@ -242,6 +242,11 @@ canvas{display:block;}
 .remove-btn:hover{border-color:var(--red);color:var(--red);}
 .skip-remove-row{display:flex;align-items:center;gap:0;margin-top:7px;}
 
+/* ── WEAKNESS FILTER ── */
+.weak-filter-row{display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 4px;}
+.wf-btn{padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-size:0.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:transparent;border:1px solid var(--border2);border-radius:4px;color:var(--text-dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.wf-btn.active{background:var(--green-pale);border-color:var(--green-dim);color:var(--green);}
+
 /* ── FLEX BADGE ── */
 .flex-badge{display:inline-block;background:var(--amber);color:#1a1000;font-size:0.55rem;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;padding:2px 5px;border-radius:3px;margin-left:5px;vertical-align:middle;position:relative;top:-1px;}
 </style>
@@ -260,6 +265,23 @@ canvas{display:block;}
       <button class="nav-tab" onclick="switchView('dashboard',this)">Dashboard</button>
       <button class="nav-tab" onclick="switchView('weaknesses',this)">Weaknesses</button>
     </div>
+  </div>
+</div>
+
+<div id="hcp-callout-bar" style="display:flex;align-items:center;justify-content:center;gap:14px;padding:5px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;">
+  <div style="display:flex;align-items:center;gap:5px;">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);">HCP</span>
+    <span id="callout-current" style="font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:800;color:var(--amber);">—</span>
+  </div>
+  <div style="width:1px;height:12px;background:var(--border);flex-shrink:0;"></div>
+  <div style="display:flex;align-items:center;gap:5px;">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);">Target Today</span>
+    <span id="callout-target" style="font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:800;color:var(--green);">—</span>
+  </div>
+  <div style="width:1px;height:12px;background:var(--border);flex-shrink:0;"></div>
+  <div style="display:flex;align-items:center;gap:5px;">
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);">You Are</span>
+    <span id="callout-pace" style="font-family:'Barlow Condensed',sans-serif;font-size:0.82rem;font-weight:800;">—</span>
   </div>
 </div>
 
@@ -391,6 +413,7 @@ canvas{display:block;}
           <option value="golf">Short Game</option>
           <option value="irons">Irons</option>
           <option value="driver">Driver</option>
+          <option value="fullbag">Full Bag</option>
           <option value="round">Golf Round</option>
           <option value="rest">Recovery / Mobility</option>
         </select>
@@ -423,6 +446,7 @@ canvas{display:block;}
           <option value="golf">Short Game</option>
           <option value="irons">Irons</option>
           <option value="driver">Driver</option>
+          <option value="fullbag">Full Bag</option>
           <option value="round">Golf Round</option>
           <option value="rest">Recovery / Mobility</option>
         </select>
@@ -452,7 +476,7 @@ canvas{display:block;}
 const ORIGIN = new Date('2026-04-14');
 const PARS18 = [4,4,3,4,5,3,4,5,4,4,3,4,5,4,3,4,5,4];
 const PARS9  = [4,4,3,4,5,3,4,5,4];
-const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',irons:'#d45b5b',driver:'#d4962a',round:'#9b7dd4',rest:'#606870'};
+const TYPE_CLR = {gym:'#5b8fd4',golf:'#6dbb5a',irons:'#d45b5b',driver:'#d4962a',fullbag:'#d45b9b',round:'#9b7dd4',rest:'#606870'};
 const MUSCLE_GROUPS = ['Chest','Back','Shoulders','Biceps','Triceps','Legs','Core','Cardio','Mobility'];
 
 // Default sessions per week type
@@ -1059,7 +1083,7 @@ function renderDashboard(){
   // KPIs
   const kg=document.createElement('div'); kg.className='kpi-grid';
   kg.innerHTML=`
-    <div class="kpi"><div class="kpi-lbl">Current HCP</div><div class="kpi-val av">${latestHcp}</div><div class="kpi-sub">Target: 14.0</div></div>
+    <div class="kpi"><div class="kpi-lbl">Current HCP</div><div class="kpi-val" style="color:${(()=>{const s=new Date('2026-04-01'),e=new Date('2026-08-14'),t=new Date(),p=Math.min(Math.max(t-s,0),e-s)/(e-s),tgt=+(18-(18-14)*p).toFixed(1);return latestHcp<=tgt?'var(--green)':'var(--amber)';})()}">${latestHcp}</div><div class="kpi-sub">Target: 14.0</div></div>
     <div class="kpi"><div class="kpi-lbl">HCP Drop</div><div class="kpi-val ${drop>0?'gv':''}">${drop>0?'−'+drop:drop}</div><div class="kpi-sub">Need −4 total</div></div>
     <div class="kpi"><div class="kpi-lbl">Rounds Played</div><div class="kpi-val">${totalR}</div><div class="kpi-sub">All logged rounds</div></div>
     <div class="kpi"><div class="kpi-lbl">Avg Score</div><div class="kpi-val">${avgScore||'—'}</div><div class="kpi-sub">${rounds18.length>0?'18-hole rounds only':'no 18-hole rounds'}</div></div>
@@ -1088,21 +1112,28 @@ function renderDashboard(){
   // Sessions done by type — raw count, bar relative to highest
   dash.innerHTML+=`<div class="dash-sec">Sessions Done by Type</div>`;
   const compBox=document.createElement('div'); compBox.className='chart-box';
-  const types=['gym','golf','irons','driver','round','rest'];
-  const tl={gym:'Lift',golf:'Short Game',irons:'Irons',driver:'Driver',round:'Rounds',rest:'Recovery'};
+  const types=['gym','golf','irons','driver','fullbag','round','rest'];
+  const tl={gym:'Lift',golf:'Short Game',irons:'Irons',driver:'Driver',fullbag:'Full Bag',round:'Rounds',rest:'Recovery'};
   let ts={}; types.forEach(t=>ts[t]=0);
   Object.keys(data).filter(k=>k.startsWith('wk_')).forEach(k=>{
     const wd=data[k]; const wtype=wd.type||'regular';
     const removed=wd.removedSessions||[];
     const added=wd.addedSessions||[];
+    const customSessions=wd.customSessions||{};
+
     DEFAULT_SESSIONS[wtype].forEach(d=>d.sessions.forEach(s=>{
-      if(s.unavailable||!ts.hasOwnProperty(s.type)) return;
+      if(s.unavailable) return;
       if(removed.includes(s.id)) return;
-      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type]++;
+      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done){
+        // Use custom type if session was edited, otherwise use default type
+        const effectiveType=customSessions[s.id]?.type||s.type;
+        if(ts.hasOwnProperty(effectiveType)) ts[effectiveType]++;
+      }
     }));
     added.forEach(s=>{
-      if(!ts.hasOwnProperty(s.type)) return;
-      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done) ts[s.type]++;
+      if(wd.sessions&&wd.sessions[s.id]&&wd.sessions[s.id].done){
+        if(ts.hasOwnProperty(s.type)) ts[s.type]++;
+      }
     });
   });
   const maxCount=Math.max(1,...Object.values(ts));
@@ -1169,129 +1200,90 @@ function logHcp(){
   const data=load(); if(!data.hcpLog) data.hcpLog=[];
   data.hcpLog.push({date:d,val:v});
   data.hcpLog.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  save(data); renderDashboard();
+  save(data); renderDashboard(); updateHcpCallout();
 }
 
 // ═══════════════════════════════════════
 // WEAKNESSES
 // ═══════════════════════════════════════
-function renderWeaknesses(){
-  const data=load(), rounds=data.rounds||[];
-  const c=document.getElementById('weak-body');
-  c.innerHTML='';
+let weakFilter='all';
 
-  if(rounds.length<2){
-    c.innerHTML=`<div class="no-rounds-msg"><h3>Not Enough Data Yet</h3><p>Log at least 2 rounds to start seeing your weakness analysis. Every stat you track (putts, GIR, fairways, up-&-down) will feed into this breakdown.</p></div>`;
+function setWeakFilter(val,btn){
+  weakFilter=val;
+  document.querySelectorAll('.wf-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildWeaknessItems();
+}
+
+function buildWeaknessItems(){
+  const c=document.getElementById('weakness-items');
+  if(!c) return;
+  c.innerHTML='';
+  const data=load();
+  const allRounds=data.rounds||[];
+
+  // Sort by date desc, slice by filter
+  const sorted=[...allRounds].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const rounds=weakFilter==='all'?sorted:sorted.slice(0,weakFilter);
+
+  if(rounds.length<1){
+    c.innerHTML='<div class="no-rounds-msg"><h3>Not Enough Rounds</h3><p>No rounds in this range yet. Log more rounds or switch to All Time.</p></div>';
     return;
   }
 
-  // Aggregate stats — skill-based only (scoring avg excluded: symptom, not cause)
   const statVals={putts:[],three_putts:[],gir:[],fairways:[],updown:[],penalty:[]};
   rounds.forEach(r=>{
-    const multiplier = (r.holes===9) ? 2 : 1; // normalize 9-hole stats to 18-hole equivalent
+    const multiplier=(r.holes===9)?2:1;
     if(r.stats){ Object.entries(r.stats).forEach(([k,v])=>{
       if(statVals[k]!==undefined){
-        // updown % doesn't scale linearly, keep as-is
-        const val = (k==='updown') ? parseFloat(v) : parseFloat(v) * multiplier;
+        const val=(k==='updown')?parseFloat(v):parseFloat(v)*multiplier;
         statVals[k].push(val);
       }
     }); }
     else if(r.focusStat&&r.statVal&&statVals[r.focusStat]!==undefined){
-      const val = (r.focusStat==='updown') ? parseFloat(r.statVal) : parseFloat(r.statVal) * multiplier;
+      const val=(r.focusStat==='updown')?parseFloat(r.statVal):parseFloat(r.statVal)*multiplier;
       statVals[r.focusStat].push(val);
     }
   });
 
   const avg=arr=>arr.length>0?+(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):null;
-
-  // Build weakness items — putts, GIR, fairways, up-&-down, penalties only
   const items=[];
 
-  // Putts
   const pAvg=avg(statVals.putts);
-  if(pAvg!==null){
-    const severity=Math.min(100,Math.max(0,((pAvg-28)/12)*100));
-    items.push({
-      stat:'Putting',
-      value:pAvg+' putts/round',
-      desc:`Averaging ${pAvg} putts per round. A 14 handicap typically averages 32–34 putts. Under 32 is excellent. Your putting drill sessions (Mon/Fri) are directly targeting this.`,
-      target:'Goal: ≤33 putts per round',
-      severity,color:'#9b7dd4',
-    });
-  }
+  if(pAvg!==null){ const sev=Math.min(100,Math.max(0,((pAvg-28)/12)*100));
+    items.push({stat:'Putting',value:pAvg+' putts/round',desc:`Averaging ${pAvg} putts per round. A 14 HCP averages 32–34. Your Mon/Fri sessions target this directly.`,target:'Goal: ≤33 putts per round',severity:sev,color:'#9b7dd4'}); }
 
-  // GIR
   const tpAvg=avg(statVals.three_putts);
   if(tpAvg!==null){ const sev=Math.min(100,Math.max(0,(tpAvg/6)*100));
-    items.push({stat:'3-Putts',value:tpAvg+' per round',desc:`Averaging ${tpAvg} three-putts per round (18-hole equivalent). Each 3-putt is a direct stroke wasted on the green. A 14 HCP averages 1–2 per round.`,target:'Goal: ≤1 three-putt per round',severity:sev,color:'#d45b5b'}); }
+    items.push({stat:'3-Putts',value:tpAvg+' per round',desc:`Averaging ${tpAvg} three-putts per round (18-hole equiv). Each 3-putt is a stroke wasted on the green. A 14 HCP averages 1–2 per round.`,target:'Goal: ≤1 three-putt per round',severity:sev,color:'#d45b5b'}); }
 
   const gAvg=avg(statVals.gir);
-  if(gAvg!==null){
-    const invSev=Math.min(100,Math.max(0,((9-gAvg)/9)*100));
-    items.push({
-      stat:'Greens in Regulation',
-      value:gAvg+' GIR/round',
-      desc:`Hitting ${gAvg} greens per round on average. A 14 handicap typically hits 5–7 GIR. More GIR = more birdie and par opportunities, fewer scrambles.`,
-      target:'Goal: 6+ GIR per round',
-      severity:invSev,color:'#5b8fd4',
-    });
-  }
+  if(gAvg!==null){ const sev=Math.min(100,Math.max(0,((9-gAvg)/9)*100));
+    items.push({stat:'Greens in Regulation',value:gAvg+' GIR/round',desc:`Hitting ${gAvg} greens per round. A 14 HCP typically hits 5–7 GIR. More GIR = more par/birdie chances.`,target:'Goal: 6+ GIR per round',severity:sev,color:'#5b8fd4'}); }
 
-  // Fairways
   const fAvg=avg(statVals.fairways);
-  if(fAvg!==null){
-    const invSev=Math.min(100,Math.max(0,((10-fAvg)/10)*100));
-    items.push({
-      stat:'Fairways Hit',
-      value:fAvg+' fairways/round',
-      desc:`Hitting ${fAvg} fairways per round. Missing fairways leads to longer approach shots from rough, inflating scores. Your Wed/Thu driver work targets this.`,
-      target:'Goal: 7+ fairways per round',
-      severity:invSev,color:'#d4962a',
-    });
-  }
+  if(fAvg!==null){ const sev=Math.min(100,Math.max(0,((10-fAvg)/10)*100));
+    items.push({stat:'Fairways Hit',value:fAvg+' fairways/round',desc:`Hitting ${fAvg} fairways per round. Your Wed/Thu driver work directly targets this.`,target:'Goal: 7+ fairways per round',severity:sev,color:'#d4962a'}); }
 
-  // Up & down
   const uAvg=avg(statVals.updown);
-  if(uAvg!==null){
-    const invSev=Math.min(100,Math.max(0,((50-uAvg)/50)*100));
-    items.push({
-      stat:'Up-&-Down %',
-      value:uAvg+'%',
-      desc:`Converting ${uAvg}% of up-&-down attempts. A 14 handicap typically converts 30–40%. This is where your Monday chipping work pays off most directly.`,
-      target:'Goal: 35%+ conversion',
-      severity:invSev,color:'#4ab8a8',
-    });
-  }
+  if(uAvg!==null){ const sev=Math.min(100,Math.max(0,((50-uAvg)/50)*100));
+    items.push({stat:'Up-&-Down %',value:uAvg+'%',desc:`Converting ${uAvg}% of up-&-down attempts. A 14 HCP converts 30–40%. Your Monday chipping work targets this.`,target:'Goal: 35%+ conversion',severity:sev,color:'#4ab8a8'}); }
 
-  // Penalty strokes
   const penAvg=avg(statVals.penalty);
-  if(penAvg!==null){
-    const severity=Math.min(100,Math.max(0,(penAvg/4)*100));
-    items.push({
-      stat:'Penalty Strokes',
-      value:penAvg+' per round',
-      desc:`Averaging ${penAvg} penalty strokes per round. Each penalty is a free stroke lost. Straighter driving and course management reduce this.`,
-      target:'Goal: <1 penalty per round',
-      severity,color:'#d45b5b',
-    });
-  }
+  if(penAvg!==null){ const sev=Math.min(100,Math.max(0,(penAvg/4)*100));
+    items.push({stat:'Penalty Strokes',value:penAvg+' per round',desc:`Averaging ${penAvg} penalty strokes. Straighter driving and course management reduce this.`,target:'Goal: <1 penalty per round',severity:sev,color:'#d45b5b'}); }
 
   if(items.length===0){
-    c.innerHTML='<div class="no-rounds-msg"><h3>Keep Logging Stats</h3><p>You have rounds logged but no focus stats recorded. Add putts, GIR, fairways, or up-&-down data when logging your rounds to see your weakness breakdown.</p></div>';
+    c.innerHTML='<div class="no-rounds-msg"><h3>Keep Logging Stats</h3><p>Add putts, GIR, fairways, or up-&-down data when logging rounds to see your breakdown.</p></div>';
     return;
   }
 
-  // Sort by severity desc
   items.sort((a,b)=>b.severity-a.severity);
-
   const rankCls=['r1','r2','r3','r4','r5'];
 
-  const hdr=document.createElement('div');
-  hdr.style.cssText='padding:14px 0 10px;';
-  hdr.innerHTML=`
-    <div class="dash-sec" style="margin:0 0 4px">Your Biggest Weaknesses</div>
-    <div style="font-size:0.72rem;color:var(--text-dim);line-height:1.6">Based on ${rounds.length} logged rounds. Fix these in order — #1 is where your strokes are bleeding most.</div>
-  `;
+  const hdr=document.createElement('div'); hdr.style.cssText='padding:10px 0 8px;';
+  hdr.innerHTML=`<div class="dash-sec" style="margin:0 0 4px">Your Biggest Weaknesses</div>
+    <div style="font-size:0.7rem;color:var(--text-dim);line-height:1.6">Based on ${rounds.length} round${rounds.length!==1?'s':''} · Fix in order — #1 is where strokes are bleeding most.</div>`;
   c.appendChild(hdr);
 
   items.forEach((item,i)=>{
@@ -1304,15 +1296,43 @@ function renderWeaknesses(){
         <div class="weak-desc">${item.desc}</div>
         <div class="weak-target">${item.target}</div>
         <div class="weak-bar-track"><div class="weak-bar-fill" style="width:${item.severity}%;background:${item.color}"></div></div>
-      </div>
-    `;
+      </div>`;
     c.appendChild(card);
   });
 
   const note=document.createElement('div');
   note.style.cssText='font-size:0.7rem;color:var(--text-dim);text-align:center;padding:10px 0 4px;line-height:1.6;';
-  note.textContent='Weakness rankings update automatically as you log more rounds. Log at least 5 rounds for reliable data.';
+  note.textContent='Rankings update as you log more rounds.';
   c.appendChild(note);
+}
+
+function renderWeaknesses(){
+  const data=load(), allRounds=data.rounds||[];
+  const c=document.getElementById('weak-body');
+  c.innerHTML='';
+
+  if(allRounds.length<1){
+    c.innerHTML=`<div class="no-rounds-msg"><h3>Not Enough Data Yet</h3><p>Log at least 1 round with stats to see your weakness analysis.</p></div>`;
+    return;
+  }
+
+  // Filter buttons
+  const filterRow=document.createElement('div'); filterRow.className='weak-filter-row';
+  const filters=[{label:'Last 1',val:1},{label:'Last 3',val:3},{label:'Last 5',val:5},{label:'Last 10',val:10},{label:'Last 20',val:20},{label:'All Time',val:'all'}];
+  filters.forEach(f=>{
+    const btn=document.createElement('button');
+    btn.className='wf-btn'+(weakFilter===f.val?' active':'');
+    btn.textContent=f.label;
+    btn.onclick=()=>setWeakFilter(f.val,btn);
+    filterRow.appendChild(btn);
+  });
+  c.appendChild(filterRow);
+
+  const itemsContainer=document.createElement('div');
+  itemsContainer.id='weakness-items';
+  c.appendChild(itemsContainer);
+
+  buildWeaknessItems();
 }
 
 // ═══════════════════════════════════════
@@ -1404,6 +1424,35 @@ function importData(e){
 // ═══════════════════════════════════════
 renderWeekView();
 renderRoundsView();
+updateHcpCallout();
+
+function updateHcpCallout(){
+  const data=load();
+  const hcpLog=data.hcpLog||[];
+  const latestHcp=hcpLog.length>0?hcpLog[hcpLog.length-1].val:18;
+
+  // Calculate where HCP should be today on the target line
+  const start=new Date('2026-04-01');
+  const end=new Date('2026-08-14');
+  const today=new Date();
+  const totalMs=end-start;
+  const elapsedMs=Math.min(Math.max(today-start,0),totalMs);
+  const progress=elapsedMs/totalMs;
+  const targetToday=+(18-(18-14)*progress).toFixed(1);
+
+  // Diff: positive = behind pace, negative = ahead of pace
+  const diff=+(latestHcp-targetToday).toFixed(1);
+  const diffStr=diff===0?'On Pace':diff>0?'+'+diff+' behind':''+Math.abs(diff)+' ahead';
+  const paceColor=diff>0?'var(--red)':diff<0?'var(--green)':'var(--text-mid)';
+
+  const curEl=document.getElementById('callout-current');
+  const tgtEl=document.getElementById('callout-target');
+  const paceEl=document.getElementById('callout-pace');
+  const currentColor = diff<0 ? 'var(--green)' : 'var(--amber)';
+  if(curEl){ curEl.textContent=latestHcp; curEl.style.color=currentColor; }
+  if(tgtEl) tgtEl.textContent=targetToday;
+  if(paceEl){ paceEl.textContent=diffStr; paceEl.style.color=paceColor; }
+}
 </script>
 </body>
 </html>
